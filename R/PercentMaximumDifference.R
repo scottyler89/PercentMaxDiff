@@ -25,14 +25,13 @@ get_cont_table<-function(x, y,offset=1){
 }
 
 
-XXXXXXXXXXXXXX
-#' @description \code{get_percent_max_resid} 
-#' @param groups1_table 
-#' @param groups2_table 
-#' @return 
+#' @description \code{get_percent_max_resid} Takes in the observed and expected matrix (as with \code{chisq.test}) and uses it to calculate the PMD.
+#' @param observed observed matrix (i.e. contingency table)
+#' @param expected expected matrix under the null hypothesis that there are no differences
+#' @return the percentage of asymmetry relative to the maximum possible asymmetry.
 #' @examples
-#'    
-#'    
+#'    dummy_mat <- matrix(c(500, 250, 100, 1000, 500, 200),nrow = 3, ncol=2)
+#'    get_percent_max_resid(dummy_mat, chisq.test(dummy_mat)$expected)
 #' @name get_percent_max_resid
 #' @export
 get_percent_max_resid<-function(observed, expected){
