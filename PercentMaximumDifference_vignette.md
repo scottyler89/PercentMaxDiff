@@ -12,9 +12,7 @@ vignette: >
   %\VignetteIndexEntry{"The PercentMaximumDifference user's guide"}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 # Introduction
 
@@ -23,7 +21,8 @@ Percent Maximum Difference provides a metric that enables the measurement of how
 # Examples
 ## Running PMD on batch/clustering results
 
-```{r two_batches, message=FALSE}
+
+```r
 ## generate a vector that represents batch
 batch <- rep(seq_len(2),each=100)
 ## generate a vector that represents clusters
@@ -34,7 +33,8 @@ pmd_res <- pmd(batch, clusters)
 
 You can also run it on more than two batches! It actually works in n-dimentions both for batches or clusters.
 
-```{r three_batches, message=FALSE}
+
+```r
 ## generate a vector that represents batch
 batch <- rep(seq_len(3),each=100)
 ## generate a vector that represents clusters
@@ -58,13 +58,21 @@ The resultant object is a list with several useful metrics that describe how sim
 
 Part of the pmd function is running a null background. This mimics the numbers and relative abundnance of your input data, but under the null-hypothesis that your batches were not actually different. These simulations yield a vector of null pmd calculations. You can look at that like so:
 
-```{r hist_of_null, message=FALSE}
+
+```r
 hist(pmd_res$pmd_null)
 ```
+
+![plot of chunk hist_of_null](figure/hist_of_null-1.png)
 Using this null background, an empirical p-value is calculated:
 
-```{r p_val, message=FALSE}
+
+```r
 pmd_res$p.value
+```
+
+```
+## [1] 0.997
 ```
 
 ## comparing two different 'batch correction' or normalization approaches
@@ -72,7 +80,8 @@ pmd_res$p.value
 Lets say you had done batch integration & clustering using two different algoirthms. There were three datasets - two were very similar, and one was very different. 
 
 
-```{r make_three_, message=FALSE}
+
+```r
 batch <- rep(seq_len(3),each=1000)
 clust<- c(rep(seq_len(4),each=250),rep(seq_len(4),each=250))
 clust<- c(clust, c(rep(seq_len(4),each=250)+4))

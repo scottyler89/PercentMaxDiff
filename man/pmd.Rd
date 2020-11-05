@@ -16,7 +16,7 @@ pmd(batch_labels, cluster_labels, num_sim = 10000)
 \value{
 list object
    \enumerate{
-   \item \code{cont_table} - blah blah
+   \item \code{cont_table} The contingency table of clusters (rows) and batches (columns)
    \item \code{chi} A list containing all of the results from a traditional Chi Sqr
           as with the chisq.test function.
    \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
