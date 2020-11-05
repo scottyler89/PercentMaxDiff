@@ -1,0 +1,19 @@
+Package: PercentMaximumDifference
+Type: Package
+Title: Percent Maximum Difference
+Version: 0.0.0
+Authors@R: c(
+	person('Scott', 'Tyler', NULL, 'scottyler89@gmail.com', c('ctb', 'cre', 'aut'))
+	)
+Maintainer: Scott Tyler <scottyler89@gmail.com>
+Description: This tool assesses how large batch effects are using a metric between zero (batches similar) and 1 (batches completely different)
+License: GPL 
+Encoding: UTF-8
+VignetteBuilder: knitr
+LazyData: true
+RoxygenNote: 6.1.1
+biocViews: CellBiology, CellBasedAssays, BatchEffect, Software
+Collate: 
+    'PercentMaximumDifference.R'
+    'characterize_PMD.R'
+Author: Scott R Tyler [ctb, cre, aut]
