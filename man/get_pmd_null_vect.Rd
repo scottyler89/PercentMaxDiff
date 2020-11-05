@@ -15,7 +15,7 @@ get_pmd_null_vect(expected_mat, num_sim = 10000)
 a vector of floating points that represent a null distribution that matches your input for percent maximum difference
 }
 \description{
-\code{get_pmd_null_vect}
+\code{get_pmd_null_vect} Takes in a contingency matrix (rows: clusters x columns: batch), and gets a null distribution of expected PMDs if there was no asymmetry based on batch.
 }
 \examples{
    dummy_mat <- matrix(c(500, 250, 100, 1000, 500, 200),nrow = 3, ncol=2)

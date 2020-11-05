@@ -1,6 +1,3 @@
-
-###importFrom stats chisq.test na.omit runif sd
-
 #' get_cont_table
 #' @description \code{get_cont_table} gets a congingency table that quantifies two factors against each other, assuming that they are in the same order.
 #' @param x a vector that can be interpreted as a factor
@@ -55,14 +52,19 @@ get_percent_max_resid<-function(observed, expected){
 
 
 #' get_percent_max_diff_from_tables
-#' @description \code{get_percent_max_diff_from_tables} calculates the percent max difference for two batches 
-#'                 that have the same cells. This can be useful if you want to do something to the same dataset &
-#'                 look at how it changes the results by PMD.
+#' @description \code{get_percent_max_diff_from_tables} Calculates PMD from two input dataframes. The first data frame
+#'                 has cell IDs in first column, and batch in the second column. The second
+#'                 dataframe has the Cell IDs and then the clusters
 #'                 
 #' @param groups1_table a data frame in which the first column is the cell IDs, and second column is the cluster that cell belongs to.
 #' @param groups2_table a data frame of the same format as above, but for the second dataset.
 #' @return pmd
-#' @examples
+#' @examples 
+#'       groups1_table = data.frame(cell = paste("cell",1:10),
+#'                                  batch = c(rep(1,5),rep(2,5)))
+#'       groups2_table = data.frame(cell = paste("cell",1:10),
+#'                                  clust = c(rep(1,5),rep(2,5)))
+#'       get_percent_max_diff_from_tables(groups1_table, groups2_table)
 #' @importFrom stats na.omit
 #' @name get_percent_max_diff_from_tables
 #' @export
@@ -81,7 +83,7 @@ get_percent_max_diff_from_tables<-function(groups1_table, groups2_table){
 
 
 #' get_random_sample_cluster
-#' @description \code{get_random_sample_cluster} 
+#' @description \code{get_random_sample_cluster} takes in a probability vector & the number of samples to simulate; returns that number of samples, fitting the specified proportions.
 #' @param prob_vect a vector of probabilities that sum up to 1, that represent the relative abundance of each clusters that we'll be sampling from.
 #' @param num_samples the number of samples to simulate.
 #' @return a vector of simulated cluster labels of length \code{num_samples} based on the probility vector that codes the relative abundance of each cluster.
@@ -108,7 +110,7 @@ get_random_sample_cluster<-function(prob_vect, num_samples){
 
 
 #' get_pmd_null_vect
-#' @description \code{get_pmd_null_vect} 
+#' @description \code{get_pmd_null_vect} Takes in a contingency matrix (rows: clusters x columns: batch), and gets a null distribution of expected PMDs if there was no asymmetry based on batch.
 #' @param expected_mat A matrix that represents a contingency matrix of clusters (rows) and batch (cols).
 #' @param num_sim for generating a null distribution in calculating a p-value, the number of simulations to run.
 #' @return a vector of floating points that represent a null distribution that matches your input for percent maximum difference

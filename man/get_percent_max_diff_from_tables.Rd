@@ -15,7 +15,14 @@ get_percent_max_diff_from_tables(groups1_table, groups2_table)
 pmd
 }
 \description{
-\code{get_percent_max_diff_from_tables} calculates the percent max difference for two batches 
-                that have the same cells. This can be useful if you want to do something to the same dataset &
-                look at how it changes the results by PMD.
+\code{get_percent_max_diff_from_tables} Calculates PMD from two input dataframes. The first data frame
+                has cell IDs in first column, and batch in the second column. The second
+                dataframe has the Cell IDs and then the clusters
+}
+\examples{
+      groups1_table = data.frame(cell = paste("cell",1:10),
+                                 batch = c(rep(1,5),rep(2,5)))
+      groups2_table = data.frame(cell = paste("cell",1:10),
+                                 clust = c(rep(1,5),rep(2,5)))
+      get_percent_max_diff_from_tables(groups1_table, groups2_table)
 }
