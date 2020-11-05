@@ -24,6 +24,7 @@ Percent Maximum Difference provides a metric that enables the measurement of how
 ## Running PMD on batch/clustering results
 
 ```{r two_batches, message=FALSE}
+library("PercentMaximumDifference")
 ## generate a vector that represents batch
 batch <- rep(seq_len(2),each=100)
 ## generate a vector that represents clusters
@@ -61,7 +62,9 @@ Part of the pmd function is running a null background. This mimics the numbers a
 ```{r hist_of_null, message=FALSE}
 hist(pmd_res$pmd_null)
 ```
+
 Using this null background, an empirical p-value is calculated:
+
 
 ```{r p_val, message=FALSE}
 pmd_res$p.value
@@ -115,5 +118,7 @@ print(pmd_res$p.value)
 
 The PMD in this case is .6666. That's because 2/3rds of the cells come from clusters that are shared across batches, while the remaining 1/3rd is from batch 3 that was completely different from the others. The P-value is 0 (or in this case just more significant that the 10000 null simulations run in which there was no pattern by batch). 
 
-Note that you could also run these assays on each batch pairwise if you want to something like a pairwise post-hoc.
+Note that you could also run these assays on each batch pairwise if you want to do something like a pairwise post-hoc.
+
+
 

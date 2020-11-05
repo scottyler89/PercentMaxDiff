@@ -19,7 +19,3 @@ pmd
                 that have the same cells. This can be useful if you want to do something to the same dataset &
                 look at how it changes the results by PMD.
 }
-\examples{
-   
-   
-}

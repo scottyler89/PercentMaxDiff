@@ -64,7 +64,9 @@ hist(pmd_res$pmd_null)
 ```
 
 ![plot of chunk hist_of_null](figure/hist_of_null-1.png)
+
 Using this null background, an empirical p-value is calculated:
+
 
 
 ```r
@@ -72,7 +74,7 @@ pmd_res$p.value
 ```
 
 ```
-## [1] 0.997
+## [1] 0.9959
 ```
 
 ## comparing two different 'batch correction' or normalization approaches
@@ -124,5 +126,7 @@ print(pmd_res$p.value)
 
 The PMD in this case is .6666. That's because 2/3rds of the cells come from clusters that are shared across batches, while the remaining 1/3rd is from batch 3 that was completely different from the others. The P-value is 0 (or in this case just more significant that the 10000 null simulations run in which there was no pattern by batch). 
 
-Note that you could also run these assays on each batch pairwise if you want to something like a pairwise post-hoc.
+Note that you could also run these assays on each batch pairwise if you want to do something like a pairwise post-hoc.
+
+
 

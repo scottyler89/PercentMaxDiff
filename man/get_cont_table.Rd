@@ -4,7 +4,7 @@
 \alias{get_cont_table}
 \title{get_cont_table}
 \usage{
-get_cont_table(x, y, offset = 1)
+get_cont_table(x, y)
 }
 \arguments{
 \item{x}{a vector that can be interpreted as a factor}

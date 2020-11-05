@@ -1,3 +1,6 @@
+
+###importFrom stats chisq.test na.omit runif sd
+
 #' get_cont_table
 #' @description \code{get_cont_table} gets a congingency table that quantifies two factors against each other, assuming that they are in the same order.
 #' @param x a vector that can be interpreted as a factor
@@ -9,13 +12,13 @@
 #'    cont_table <- get_cont_table(x, y)
 #' @name get_cont_table
 #' @export
-get_cont_table<-function(x, y,offset=1){
+get_cont_table<-function(x, y){
 	## x and y are integeric labels
 	x<-as.integer(as.factor(x))
 	y<-as.integer(as.factor(y))
 	if (length(x) != length(y)){
 		print("x and y were different lengths!")
-		sys.exit()
+		return()
 	}
 	cont_mat <- matrix(ncol=length(unique(y)), nrow = length(unique(x)))
 	cont_mat[,] <- 0 
@@ -34,6 +37,7 @@ get_cont_table<-function(x, y,offset=1){
 #' @examples
 #'    dummy_mat <- matrix(c(500, 250, 100, 1000, 500, 200),nrow = 3, ncol=2)
 #'    get_percent_max_resid(dummy_mat, chisq.test(dummy_mat)$expected)
+#' @importFrom stats chisq.test
 #' @name get_percent_max_resid
 #' @export
 get_percent_max_resid<-function(observed, expected){
@@ -50,7 +54,6 @@ get_percent_max_resid<-function(observed, expected){
 }
 
 
-
 #' get_percent_max_diff_from_tables
 #' @description \code{get_percent_max_diff_from_tables} calculates the percent max difference for two batches 
 #'                 that have the same cells. This can be useful if you want to do something to the same dataset &
@@ -60,8 +63,7 @@ get_percent_max_resid<-function(observed, expected){
 #' @param groups2_table a data frame of the same format as above, but for the second dataset.
 #' @return pmd
 #' @examples
-#'    
-#'    
+#' @importFrom stats na.omit
 #' @name get_percent_max_diff_from_tables
 #' @export
 get_percent_max_diff_from_tables<-function(groups1_table, groups2_table){
@@ -78,7 +80,6 @@ get_percent_max_diff_from_tables<-function(groups1_table, groups2_table){
 }
 
 
-
 #' get_random_sample_cluster
 #' @description \code{get_random_sample_cluster} 
 #' @param prob_vect a vector of probabilities that sum up to 1, that represent the relative abundance of each clusters that we'll be sampling from.
@@ -87,6 +88,7 @@ get_percent_max_diff_from_tables<-function(groups1_table, groups2_table){
 #' @examples
 #'    prob_vect <- c(.25, .25, .5)
 #'    sim_clusters <- get_random_sample_cluster(prob_vect, 1000)
+#' @importFrom stats runif
 #' @name get_random_sample_cluster
 #' @export
 get_random_sample_cluster<-function(prob_vect, num_samples){
@@ -146,6 +148,7 @@ get_pmd_null_vect<-function(expected_mat, num_sim = 10000){
 
 
 
+
 #' get_percent_max_diff
 #' @description \code{get_percent_max_diff} Gets the Percent Maximum Difference (PMD) for clustering results relative to batch.
 #' @param group1_labs a vector of labels for the batch that each sample (or cell for scRNAseq) came from. Can be a string or factor.
@@ -155,6 +158,7 @@ get_pmd_null_vect<-function(expected_mat, num_sim = 10000){
 #'    batch <- rep(seq_len(2),each=100)
 #'    clusters <- rep(rep(seq_len(2),each=50),2)
 #'    pmd_num <- get_percent_max_diff(batch, clusters)
+#' @importFrom stats chisq.test
 #' @name get_percent_max_diff
 #' @export
 get_percent_max_diff<-function(group1_labs,group2_labs){
@@ -215,6 +219,7 @@ get_percent_max_diff<-function(group1_labs,group2_labs){
 #'    batch <- rep(seq_len(2),each=100)
 #'    clusters <- rep(rep(seq_len(2),each=50),2)
 #'    pmd_res <- pmd(batch, clusters)
+#' @importFrom stats chisq.test sd
 #' @name pmd
 #' @export
 pmd<-function(batch_labels,cluster_labels, num_sim = 10000){
