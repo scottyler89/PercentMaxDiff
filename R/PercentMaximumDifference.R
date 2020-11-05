@@ -1,3 +1,4 @@
+#' get_cont_table
 #' @description \code{get_cont_table} gets a congingency table that quantifies two factors against each other, assuming that they are in the same order.
 #' @param x a vector that can be interpreted as a factor
 #' @param y a vector that can be interpreted as a factor
@@ -25,6 +26,7 @@ get_cont_table<-function(x, y,offset=1){
 }
 
 
+#' get_percent_max_resid
 #' @description \code{get_percent_max_resid} Takes in the observed and expected matrix (as with \code{chisq.test}) and uses it to calculate the PMD.
 #' @param observed observed matrix (i.e. contingency table)
 #' @param expected expected matrix under the null hypothesis that there are no differences
@@ -48,6 +50,8 @@ get_percent_max_resid<-function(observed, expected){
 }
 
 
+
+#' get_percent_max_diff_from_tables
 #' @description \code{get_percent_max_diff_from_tables} calculates the percent max difference for two batches 
 #'                 that have the same cells. This can be useful if you want to do something to the same dataset &
 #'                 look at how it changes the results by PMD.
@@ -74,6 +78,8 @@ get_percent_max_diff_from_tables<-function(groups1_table, groups2_table){
 }
 
 
+
+#' get_random_sample_cluster
 #' @description \code{get_random_sample_cluster} 
 #' @param prob_vect a vector of probabilities that sum up to 1, that represent the relative abundance of each clusters that we'll be sampling from.
 #' @param num_samples the number of samples to simulate.
@@ -98,6 +104,8 @@ get_random_sample_cluster<-function(prob_vect, num_samples){
 }
 
 
+
+#' get_pmd_null_vect
 #' @description \code{get_pmd_null_vect} 
 #' @param expected_mat A matrix that represents a contingency matrix of clusters (rows) and batch (cols).
 #' @param num_sim for generating a null distribution in calculating a p-value, the number of simulations to run.
@@ -137,6 +145,8 @@ get_pmd_null_vect<-function(expected_mat, num_sim = 10000){
 }
 
 
+
+#' get_percent_max_diff
 #' @description \code{get_percent_max_diff} Gets the Percent Maximum Difference (PMD) for clustering results relative to batch.
 #' @param group1_labs a vector of labels for the batch that each sample (or cell for scRNAseq) came from. Can be a string or factor.
 #' @param group2_labs  a vector of labels for each cluster that each sample belongs to. Can be a string or factor.
@@ -157,6 +167,8 @@ get_percent_max_diff<-function(group1_labs,group2_labs){
 }
 
 
+
+#' Percent Maximum Difference
 #' @description \code{pmd} Percent Maximum Difference provides a metric that enables the measurement
 #'                         of how similar (PMD near 0) or different (PMD near 1) two batches are
 #'                         based just on clustering results. This can be viewed as an alternative
@@ -179,7 +191,7 @@ get_percent_max_diff<-function(group1_labs,group2_labs){
 #' @param num_sim for generating a null distribution in calculating a p-value, the number of simulations to run.
 #' @return list object
 #'    \enumerate{
-#'    \item \code{cont_table} - blah blah
+#'    \item \code{cont_table} The contingency table of clusters (rows) and batches (columns)
 #'    \item \code{chi} A list containing all of the results from a traditional Chi Sqr
 #'           as with the chisq.test function.
 #'    \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
