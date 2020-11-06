@@ -4,82 +4,151 @@
 #' @param num_cells_b2 The number of cells in batch 2
 #' @param num_clust_shared the number of clusters that are shared across the two batches
 #' @param iters the number of iterations for each condition
-#' @return Null
+#' @importFrom MASS firtdistr
+#' @importFrom stats chisq.test
+#' @return out_df A dataframe that has the results of the characterization
 #' @include PercentMaximumDifference.R
 #' @examples
 #'    characterize_pmd()
 #' @name characterize_pmd
 #' @export
-characterize_pmd<-function(num_cells_b1=1000,
-	                       num_cells_b2=1000,
-	                       num_clust_shared=0:10,
-	                       iters = 10){
-	max_clust <- max(num_clust_shared)
-	skew_vect <-c()
-	iter_vect <- c()
-	pmd_vect <- c()
-	num_shared_vect <- c()
-	for (iter in 1:iters){
-		for (num_shared in num_clust_shared){
-			clust_prob_1 <- rep(1,max_clust)/max_clust
-			clust_prob_2 <- rep(1,max_clust)/max_clust
-			clust_vect_1 <- get_random_sample_cluster(clust_prob_1, num_cells_b1)
-			clust_vect_2 <- get_random_sample_cluster(clust_prob_2, num_cells_b2)+num_shared
-			clusters<-c(clust_vect_1, clust_vect_2)
-			batches <- c(rep(1,num_cells_b1),rep(2, num_cells_b2))
-			temp_pmd <- get_percent_max_diff(batches, clusters)
-			## now log it all
-			iter_vect <- c(iter_vect, iter)
-			pmd_vect <- c(pmd_vect, temp_pmd)
-			num_shared_vect <- c(num_shared_vect, num_shared)
-		}
-	}
-	out_df <- data.frame(iter = iter_vect,
-					     num_non_shared_clusters = num_shared_vect, 
-					     pmd = pmd_vect)
-	return(out_df)
+characterize_pmd <- function(num_cells_b1 = 1000,
+                            num_cells_b2 = 1000,
+                            num_clust_shared = seq(from=0, to=10),
+                            iters = 10) {
+    print(paste("simulating",num_cells_b1, "and", num_cells_b2))
+    max_clust <- max(num_clust_shared)
+    total_cells <- c()
+    num_clust <- c()
+    dataset_sizes <- c()
+    min_of_expected_mat <- c()
+    lambda_estimate <- c()
+    iter_vect <- c()
+    pmd_raw_vect <- c()
+    pmd_vect <- c()
+    num_shared_vect <- c()
+    for (iter in 1:iters){
+        for (num_shared in num_clust_shared){
+            clust_prob_1 <- rep(1,max_clust) / max_clust
+            clust_prob_2 <- rep(1,max_clust) / max_clust
+            clust_vect_1 <- get_random_sample_cluster(clust_prob_1, num_cells_b1)
+            clust_vect_2 <- get_random_sample_cluster(clust_prob_2, num_cells_b2) + num_shared
+            clusters <- c(clust_vect_1, clust_vect_2)
+            batches <- c(rep(1,num_cells_b1),rep(2, num_cells_b2))
+            temp_pmd <- get_percent_max_diff(batches, clusters)
+            ## now get the null, fit the Poisson distribution & log the params
+            cont_mat <- get_cont_table(as.factor(clusters), as.factor(batches))
+            expected_mat <- chisq.test(cont_mat)$expected
+            pmd_null <- get_pmd_null_vect(expected_mat, num_sim = 100)
+            temp_fit <- fitdistr(pmd_null, densfun="poisson")
+            temp_lambda <- as.numeric(temp_fit$estimate)
+            final_pmd <- (temp_pmd - temp_lambda) / (1 - temp_lambda)
+            ## now log it all
+            iter_vect <- c(iter_vect, iter)
+            total_cells <- c(total_cells, length(clusters))
+            min_of_expected_mat <- c(min_of_expected_mat, min(expected_mat))
+            dataset_sizes <- c(dataset_sizes, paste(num_cells_b1, "vs", num_cells_b2, sep="_"))
+            num_clust <- c(num_clust, length(unique(clusters)))
+            lambda_estimate <- c(lambda_estimate, temp_lambda)
+            pmd_raw_vect <- c(pmd_raw_vect, temp_pmd)
+            pmd_vect <- c(pmd_vect, final_pmd)
+            num_shared_vect <- c(num_shared_vect, num_shared)
+        }
+    }
+    out_df <- data.frame(dataset_sizes = dataset_sizes,
+                        iter = iter_vect,
+                        total_cells =total_cells,
+                        total_number_of_clusters = num_clust,
+                        b1_size = rep(num_cells_b1, length(total_cells)),
+                        b2_size = rep(num_cells_b2, length(total_cells)),
+                        batch_size_difference = rep(abs(num_cells_b1-num_cells_b2), length(total_cells)),
+                        min_of_expected_mat = min_of_expected_mat,
+                        null_distribution_lambda_estimate = lambda_estimate,
+                        num_non_shared_clusters = num_shared_vect,
+                        raw_pmd = pmd_raw_vect,
+                        pmd = pmd_vect)
+    return(out_df)
 }
 
 
 
 #' do_full_pmd_characterization
 #' @description \code{do_full_pmd_characterization} Run the PMD characterization over a range of power conditions.
-#' @param directory the directory for putting the output image
+#' @param directory the directory for putting the output image. This isn't needed though;
+#'                  we'll skip the plotting in that case.
+#' @param b1_size_vect a vector denoting the size for the first batch for the given iteration 
+#' @param b2_size_vect a vector denoting the size for the second batch for the given iteration
+#' @param seed setting the random seed
 #' @include PercentMaximumDifference.R
 #' @return Null
 #' @importFrom ggplot2 ggplot geom_point geom_smooth aes
 #' @importFrom grDevices dev.off png
-#' @importFrom stats loess
+#' @importFrom stats loess lm
 #' @examples
-#'    do_full_pmd_characterization()
+#'    pmd_bench_table_combined <- do_full_pmd_characterization(b1_size_vect = c(1000, 1000),
+#'                                                             b2_size_vect = c(1000, 2000))
 #' @name do_full_pmd_characterization
 #' @export
-do_full_pmd_characterization<-function(directory=''){
-	if (directory==''){
-		directory=getwd()
-	}
-	pmd_bench_table_1k_vs_1k<-characterize_pmd()
-	pmd_bench_table_10k_vs_1k<-characterize_pmd(num_cells_b1=10000)
-	pmd_bench_table_10k_vs_100<-characterize_pmd(num_cells_b1=10000, num_cells_b2=500)
-	pmd_bench_table_10k_vs_10k<-characterize_pmd(num_cells_b1=10000, num_cells_b2=10000)
-	dataset_size_vect<-c(rep('1k_vs_1k',dim(pmd_bench_table_1k_vs_1k)[1]),
-						rep('10k_vs_1k',dim(pmd_bench_table_10k_vs_1k)[1]),
-						rep('10k_vs_500',dim(pmd_bench_table_10k_vs_100)[1]),
-						rep('10k_vs_10k',dim(pmd_bench_table_10k_vs_10k)[1]))
-	pmd_bench_table_combined<-rbind(pmd_bench_table_1k_vs_1k,
-		                            pmd_bench_table_10k_vs_1k,
-		                            pmd_bench_table_10k_vs_100,
-		                            pmd_bench_table_10k_vs_10k)
-	pmd_bench_table_combined<-cbind(dataset_size_vect,pmd_bench_table_combined)
-	names(pmd_bench_table_combined)<-c('dataset_sizes',names(pmd_bench_table_1k_vs_1k))
-	outfile <- paste(directory,"pmd_characterization.png",sep='/')
-	print(outfile)
-	png(outfile,width=3000,height=2100,res=600)
-	p <- ggplot(pmd_bench_table_combined, aes(x=num_non_shared_clusters, y=pmd, color = dataset_sizes)) +
-	            geom_point(shape=1) +    # Use hollow circles
-	            geom_smooth(method=loess)   # Add linear regression line 
-	                             #  (by default includes 95% confidence region)
-	print(p)
-	dev.off()
+do_full_pmd_characterization<-function(directory = '', 
+                                        b1_size_vect = c(1000,
+                                                        10000,
+                                                        10000,
+                                                        10000,
+                                                        250), 
+                                        b2_size_vect = c(1000,
+                                                        1000,
+                                                        500,
+                                                        10000,
+                                                        250),
+                                        seed = 123456) {
+    set.seed(seed)
+    results_list <- list()
+    run_names <- c()
+    for (i in seq(from=1, to=length(b1_size_vect))) {
+        temp_b1_size <- b1_size_vect[i]
+        temp_b2_size <- b2_size_vect[i]
+        temp_run_name <- paste(temp_b1_size, "vs", temp_b2_size,sep="_")
+        run_names <- c(run_names, temp_run_name)
+        results_list[[temp_run_name]] <- characterize_pmd(num_cells_b1 = temp_b1_size,
+                                                        num_cells_b2 = temp_b2_size)
+    }
+    out_df_names <- names(results_list[[run_names[1]]])
+    pmd_bench_table_combined <- results_list[[run_names[1]]]
+    for (i in seq(from=2, to=length(b1_size_vect))){
+        pmd_bench_table_combined <- rbind(pmd_bench_table_combined,
+                                          results_list[[run_names[i]]])
+    }
+    if (directory != ''){  
+        outfile <- paste(directory, "pmd_characterization%01d.png", sep = '/')
+        print(outfile)
+        png(outfile,width=3000, height=2100, res=600)
+        p <- ggplot(pmd_bench_table_combined, aes(x = num_non_shared_clusters, y = raw_pmd, color = dataset_sizes)) +
+                    geom_point(shape = 1) +    # Use hollow circles
+                    geom_smooth(method = lm)   # Add linear regression line 
+                                     #  (by default includes 95% confidence region)
+        print(p)
+        p <- ggplot(pmd_bench_table_combined, aes(x = total_number_of_clusters, y = null_distribution_lambda_estimate, color = dataset_sizes)) +
+                    geom_point(shape = 1) +    # Use hollow circles
+                    geom_smooth(method = lm)   # Add linear regression line 
+                                     #  (by default includes 95% confidence region)
+        print(p)
+        p <- ggplot(pmd_bench_table_combined, aes(x = log2(min_of_expected_mat), y = null_distribution_lambda_estimate, color = dataset_sizes)) +
+                    geom_point(shape = 1) +    # Use hollow circles
+                    geom_smooth(method = loess, span = 50)   # Add linear regression line 
+                                     #  (by default includes 95% confidence region)
+        print(p)
+        p <- ggplot(pmd_bench_table_combined, aes(x = num_non_shared_clusters, y = pmd, color = dataset_sizes)) +
+                    geom_point(shape = 1) +    # Use hollow circles
+                    geom_smooth(method = lm)   # Add linear regression line 
+                                     #  (by default includes 95% confidence region)
+        print(p)
+        dev.off()
+    }
+    return(pmd_bench_table_combined)
 }
+
+
+pmd_bench_table_combined <- do_full_pmd_characterization("/home/scott/Downloads/",
+                                                        b1_size_vect = c(10000, 10000, 1000, 250, 250, 100),
+                                                        b2_size_vect = c(10000, 1000, 1000, 2000, 250, 100))
 

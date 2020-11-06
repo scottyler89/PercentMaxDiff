@@ -8,7 +8,7 @@ Authors@R: c(
 Author: Scott Tyler [aut, cre]
 Maintainer: Scott Tyler <scottyler89@gmail.com>
 Description: This tool assesses how large batch effects are using a metric between zero (batches similar) and 1 (batches completely different)
-Imports: stats, knitr, ggplot2, grDevices
+Imports: stats, knitr, ggplot2, grDevices, MASS
 License: GPL 
 Encoding: UTF-8
 VignetteBuilder: knitr

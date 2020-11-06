@@ -1,7 +1,7 @@
 #' get_cont_table
 #' @description \code{get_cont_table} gets a congingency table that quantifies two factors against each other, assuming that they are in the same order.
-#' @param x a vector that can be interpreted as a factor
-#' @param y a vector that can be interpreted as a factor
+#' @param x a vector that can be interpreted as a factor. Should be clusters
+#' @param y a vector that can be interpreted as a factor. Should be batches
 #' @return a contingency matrix with x quantified in rows, y quantified in columns
 #' @examples
 #'    x <- rep( c( rep(1, 50), rep(2, 50) ), 2)
@@ -10,19 +10,19 @@
 #' @name get_cont_table
 #' @export
 get_cont_table<-function(x, y){
-	## x and y are integeric labels
-	x<-as.integer(as.factor(x))
-	y<-as.integer(as.factor(y))
-	if (length(x) != length(y)){
-		print("x and y were different lengths!")
-		return()
-	}
-	cont_mat <- matrix(ncol=length(unique(y)), nrow = length(unique(x)))
-	cont_mat[,] <- 0 
-	for (i in 1:length(x)){
-		cont_mat[x[i],y[i]] = cont_mat[x[i],y[i]] + 1
-	}
-	return(cont_mat)
+    ## x and y are integeric labels
+    x<-as.integer(as.factor(x))
+    y<-as.integer(as.factor(y))
+    if (length(x) != length(y)){
+        print("x and y were different lengths!")
+        return()
+    }
+    cont_mat <- matrix(ncol=length(unique(y)), nrow = length(unique(x)))
+    cont_mat[,] <- 0 
+    for (i in 1:length(x)){
+        cont_mat[x[i],y[i]] = cont_mat[x[i],y[i]] + 1
+    }
+    return(cont_mat)
 }
 
 
@@ -38,16 +38,16 @@ get_cont_table<-function(x, y){
 #' @name get_percent_max_resid
 #' @export
 get_percent_max_resid<-function(observed, expected){
-	num_diff <- sum(abs(observed - expected))
-	num_dataset <- colSums(observed)
-	baseline_mat <- matrix(ncol=length(num_dataset), nrow=length(num_dataset))
-	baseline_mat[,] <- 0
-	for (i in 1:length(num_dataset)){
-		baseline_mat[i,i]<-num_dataset[i]
-	}
-	base_chi <- chisq.test(baseline_mat)
-	max_diff <- sum(abs(base_chi$expected - baseline_mat))
-	return(num_diff/max_diff)
+    num_diff <- sum(abs(observed - expected))
+    num_dataset <- colSums(observed)
+    baseline_mat <- matrix(ncol=length(num_dataset), nrow=length(num_dataset))
+    baseline_mat[,] <- 0
+    for (i in 1:length(num_dataset)){
+        baseline_mat[i,i]<-num_dataset[i]
+    }
+    base_chi <- chisq.test(baseline_mat)
+    max_diff <- sum(abs(base_chi$expected - baseline_mat))
+    return(num_diff/max_diff)
 }
 
 
@@ -58,7 +58,7 @@ get_percent_max_resid<-function(observed, expected){
 #'                 
 #' @param groups1_table a data frame in which the first column is the cell IDs, and second column is the cluster that cell belongs to.
 #' @param groups2_table a data frame of the same format as above, but for the second dataset.
-#' @return pmd
+#' @return pmd A list object containing all of the same results as the \code{pmd} function
 #' @examples 
 #'       groups1_table = data.frame(cell = paste("cell",1:10),
 #'                                  batch = c(rep(1,5),rep(2,5)))
@@ -69,16 +69,16 @@ get_percent_max_resid<-function(observed, expected){
 #' @name get_percent_max_diff_from_tables
 #' @export
 get_percent_max_diff_from_tables<-function(groups1_table, groups2_table){
-	## groups1_table HAS to be the batch/dataset labels
-	## assumes the first column is the cell and second column is the group
-	colnames(groups1_table)[1]<-"cell"
-	colnames(groups2_table)[1]<-"cell"
-	merged_group_table<-na.omit(merge(groups1_table,groups2_table,by="cell"))
-	group1_labs<-as.factor(merged_group_table[,2])
-	group2_labs<-as.factor(merged_group_table[,3])
-	# print(unique(group1_labs))
-	# print(unique(group2_labs))
-	return(get_percent_max_diff(group1_labs,group2_labs))
+    ## groups1_table HAS to be the batch/dataset labels
+    ## assumes the first column is the cell and second column is the group
+    colnames(groups1_table)[1]<-"cell"
+    colnames(groups2_table)[1]<-"cell"
+    merged_group_table<-na.omit(merge(groups1_table,groups2_table,by="cell"))
+    group1_labs<-as.factor(merged_group_table[,2])
+    group2_labs<-as.factor(merged_group_table[,3])
+    # print(unique(group1_labs))
+    # print(unique(group2_labs))
+    return(pmd(group1_labs,group2_labs))
 }
 
 
@@ -94,17 +94,17 @@ get_percent_max_diff_from_tables<-function(groups1_table, groups2_table){
 #' @name get_random_sample_cluster
 #' @export
 get_random_sample_cluster<-function(prob_vect, num_samples){
-	cum_sum<-cumsum(prob_vect)
-	temp_rand<-runif(num_samples)
-	group_vect<-c()
-	for (i in 1:num_samples){
-		cur_clust<-1
-		while (temp_rand[i]>cum_sum[cur_clust]){
-			cur_clust<-cur_clust+1
-		}
-		group_vect<-c(group_vect, cur_clust)
-	}
-	return(group_vect)
+    cum_sum<-cumsum(prob_vect)
+    temp_rand<-runif(num_samples)
+    group_vect<-c()
+    for (i in 1:num_samples){
+        cur_clust<-1
+        while (temp_rand[i]>cum_sum[cur_clust]){
+            cur_clust<-cur_clust+1
+        }
+        group_vect<-c(group_vect, cur_clust)
+    }
+    return(group_vect)
 }
 
 
@@ -120,32 +120,32 @@ get_random_sample_cluster<-function(prob_vect, num_samples){
 #' @name get_pmd_null_vect
 #' @export
 get_pmd_null_vect<-function(expected_mat, num_sim = 10000){
-	total_cells<-sum(expected_mat)
-	num_clust<-dim(expected_mat)[1]
-	num_batch<-dim(expected_mat)[2]
-	## number of cells from each batch
-	cells_per_batch<-colSums(expected_mat)
-	## figure out the null distribution of the relative abundance of each cluster (in rows)
-	cells_per_clust<-rowSums(expected_mat)
-	## the relative abundance of each cluster
-	clust_probs<-cells_per_clust/sum(cells_per_clust)
-	pmd_null_vect<-c()
-	for (p in 1:num_sim){
-		batch_vect<-c()
-		clust_vect<-c()
-		for (b in 1:num_batch){
-			## generate each batch's sampling of cells from the main probability vector
-			batch_vect<-c(batch_vect,rep(b,cells_per_batch[b]))
-			temp_clusts<-get_random_sample_cluster(clust_probs, cells_per_batch[b])
-			clust_vect<-c(clust_vect, temp_clusts)
-			# ## populate the matrix
-			# for (cell in temp_clusts){
-			# 	temp_mat[cell,b]<-temp_mat[cell,b]+1
-			# }
-		}
-		pmd_null_vect<-c(pmd_null_vect,get_percent_max_diff(batch_vect,clust_vect))
-	}
-	return(pmd_null_vect)
+    total_cells<-sum(expected_mat)
+    num_clust<-dim(expected_mat)[1]
+    num_batch<-dim(expected_mat)[2]
+    ## number of cells from each batch
+    cells_per_batch<-colSums(expected_mat)
+    ## figure out the null distribution of the relative abundance of each cluster (in rows)
+    cells_per_clust<-rowSums(expected_mat)
+    ## the relative abundance of each cluster
+    clust_probs<-cells_per_clust/sum(cells_per_clust)
+    pmd_null_vect<-c()
+    for (p in 1:num_sim){
+        batch_vect<-c()
+        clust_vect<-c()
+        for (b in 1:num_batch){
+            ## generate each batch's sampling of cells from the main probability vector
+            batch_vect<-c(batch_vect,rep(b,cells_per_batch[b]))
+            temp_clusts<-get_random_sample_cluster(clust_probs, cells_per_batch[b])
+            clust_vect<-c(clust_vect, temp_clusts)
+            # ## populate the matrix
+            # for (cell in temp_clusts){
+            #   temp_mat[cell,b]<-temp_mat[cell,b]+1
+            # }
+        }
+        pmd_null_vect<-c(pmd_null_vect,get_percent_max_diff(batch_vect,clust_vect))
+    }
+    return(pmd_null_vect)
 }
 
 
@@ -164,12 +164,12 @@ get_pmd_null_vect<-function(expected_mat, num_sim = 10000){
 #' @name get_percent_max_diff
 #' @export
 get_percent_max_diff<-function(group1_labs,group2_labs){
-	cont_table<-get_cont_table(as.factor(group2_labs),as.factor(group1_labs))
-	chi_result <- chisq.test(cont_table)
-	observed<-cont_table
-	expected<-chi_result$expected
-	temp_percent_max_difference<-get_percent_max_resid(observed,expected)
-	return(temp_percent_max_difference)
+    cont_table<-get_cont_table(as.factor(group2_labs),as.factor(group1_labs))
+    chi_result <- chisq.test(cont_table)
+    observed<-cont_table
+    expected<-chi_result$expected
+    temp_percent_max_difference<-get_percent_max_resid(observed,expected)
+    return(temp_percent_max_difference)
 }
 
 
@@ -225,19 +225,26 @@ get_percent_max_diff<-function(group1_labs,group2_labs){
 #' @name pmd
 #' @export
 pmd<-function(batch_labels,cluster_labels, num_sim = 10000){
-	pmd_results<-list()
-	cont_table<-get_cont_table(as.factor(cluster_labels),as.factor(batch_labels))
-	pmd_results$cont_table<-cont_table
-	chi_result <- chisq.test(cont_table)
-	pmd_results$chi<-chi_result
-	cur_pmd<-get_percent_max_resid(cont_table,chi_result$expected)
-	pmd_results$pmd<-cur_pmd
-	pmd_results$pmd_null<-get_pmd_null_vect(chi_result$expected, num_sim = num_sim)
-	null_mean<-mean(pmd_results$pmd_null)
-	null_sd<-sd(pmd_results$pmd_null)
-	pmd_z<-(cur_pmd-null_mean)/null_sd
-	pmd_results$pmd_z<-pmd_z
-	pmd_results$p.value<-sum(cur_pmd<pmd_results$pmd_null)/num_sim
-	return(pmd_results)
+    pmd_results<-list()
+    cont_table<-get_cont_table(as.factor(cluster_labels),as.factor(batch_labels))
+    pmd_results$cont_table<-cont_table
+    chi_result <- chisq.test(cont_table)
+    pmd_results$chi<-chi_result
+    cur_pmd<-get_percent_max_resid(cont_table,chi_result$expected)
+    pmd_results$pmd_raw<-cur_pmd
+    pmd_results$pmd_null<-get_pmd_null_vect(chi_result$expected, num_sim = num_sim)
+    temp_fit<-fitdistr(pmd_null, densfun="poisson")
+    lambda <- temp_fit$estimate
+    pmd_results$pmd_null_lambda <- lambda
+    ## lambda is the center of mass of the null distribution.
+    ## This is what controls both the slope and intercept of the PMD line.
+    ## Here we'll correct for that
+    pmd_results$pmd <- (cur_pmd - lambda) / (1 - lambda)
+    null_mean<-mean(pmd_results$pmd_null)
+    null_sd<-sd(pmd_results$pmd_null)
+    pmd_z<-(cur_pmd-null_mean)/null_sd
+    pmd_results$pmd_z<-pmd_z
+    pmd_results$p.value<-sum(cur_pmd<pmd_results$pmd_null)/num_sim
+    return(pmd_results)
 }
 
