@@ -7,7 +7,7 @@
 characterize_pmd(
   num_cells_b1 = 1000,
   num_cells_b2 = 1000,
-  num_clust_shared = 0:10,
+  num_clust_shared = seq(from = 0, to = 10),
   iters = 10
 )
 }
@@ -21,7 +21,7 @@ characterize_pmd(
 \item{iters}{the number of iterations for each condition}
 }
 \value{
-Null
+out_df A dataframe that has the results of the characterization
 }
 \description{
 \code{characterize_pmd} Run the PMD characterization over a range of power conditions.

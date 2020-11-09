@@ -12,12 +12,12 @@ get_percent_max_diff_from_tables(groups1_table, groups2_table)
 \item{groups2_table}{a data frame of the same format as above, but for the second dataset.}
 }
 \value{
-pmd
+pmd A list object containing all of the same results as the \code{pmd} function
 }
 \description{
 \code{get_percent_max_diff_from_tables} Calculates PMD from two input dataframes. The first data frame
                 has cell IDs in first column, and batch in the second column. The second
-                dataframe has the Cell IDs and then the clusters
+                dataframe has the Cell IDs and then the clusters.
 }
 \examples{
       groups1_table = data.frame(cell = paste("cell",1:10),

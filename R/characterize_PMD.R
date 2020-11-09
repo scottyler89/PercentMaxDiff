@@ -4,7 +4,7 @@
 #' @param num_cells_b2 The number of cells in batch 2
 #' @param num_clust_shared the number of clusters that are shared across the two batches
 #' @param iters the number of iterations for each condition
-#' @importFrom MASS firtdistr
+#' @importFrom MASS fitdistr
 #' @importFrom stats chisq.test
 #' @return out_df A dataframe that has the results of the characterization
 #' @include PercentMaximumDifference.R
@@ -27,7 +27,7 @@ characterize_pmd <- function(num_cells_b1 = 1000,
     pmd_raw_vect <- c()
     pmd_vect <- c()
     num_shared_vect <- c()
-    for (iter in 1:iters){
+    for (iter in seq(from = 1, to = iters)) {
         for (num_shared in num_clust_shared){
             clust_prob_1 <- rep(1,max_clust) / max_clust
             clust_prob_2 <- rep(1,max_clust) / max_clust
@@ -57,7 +57,7 @@ characterize_pmd <- function(num_cells_b1 = 1000,
     }
     out_df <- data.frame(dataset_sizes = dataset_sizes,
                         iter = iter_vect,
-                        total_cells =total_cells,
+                        total_cells = total_cells,
                         total_number_of_clusters = num_clust,
                         b1_size = rep(num_cells_b1, length(total_cells)),
                         b2_size = rep(num_cells_b2, length(total_cells)),
@@ -78,15 +78,14 @@ characterize_pmd <- function(num_cells_b1 = 1000,
 #'                  we'll skip the plotting in that case.
 #' @param b1_size_vect a vector denoting the size for the first batch for the given iteration 
 #' @param b2_size_vect a vector denoting the size for the second batch for the given iteration
-#' @param seed setting the random seed
 #' @include PercentMaximumDifference.R
 #' @return Null
 #' @importFrom ggplot2 ggplot geom_point geom_smooth aes
 #' @importFrom grDevices dev.off png
 #' @importFrom stats loess lm
 #' @examples
-#'    pmd_bench_table_combined <- do_full_pmd_characterization(b1_size_vect = c(1000, 1000),
-#'                                                             b2_size_vect = c(1000, 2000))
+#'    pmd_bench_table_combined <- do_full_pmd_characterization(b1_size_vect = c(250, 250),
+#'                                                             b2_size_vect = c(500, 1000))
 #' @name do_full_pmd_characterization
 #' @export
 do_full_pmd_characterization<-function(directory = '', 
@@ -99,12 +98,10 @@ do_full_pmd_characterization<-function(directory = '',
                                                         1000,
                                                         500,
                                                         10000,
-                                                        250),
-                                        seed = 123456) {
-    set.seed(seed)
+                                                        250)) {
     results_list <- list()
     run_names <- c()
-    for (i in seq(from=1, to=length(b1_size_vect))) {
+    for (i in seq(from = 1, to = length(b1_size_vect))) {
         temp_b1_size <- b1_size_vect[i]
         temp_b2_size <- b2_size_vect[i]
         temp_run_name <- paste(temp_b1_size, "vs", temp_b2_size,sep="_")
@@ -114,7 +111,7 @@ do_full_pmd_characterization<-function(directory = '',
     }
     out_df_names <- names(results_list[[run_names[1]]])
     pmd_bench_table_combined <- results_list[[run_names[1]]]
-    for (i in seq(from=2, to=length(b1_size_vect))){
+    for (i in seq(from = 2, to = length(b1_size_vect))){
         pmd_bench_table_combined <- rbind(pmd_bench_table_combined,
                                           results_list[[run_names[i]]])
     }
@@ -147,8 +144,4 @@ do_full_pmd_characterization<-function(directory = '',
     return(pmd_bench_table_combined)
 }
 
-
-pmd_bench_table_combined <- do_full_pmd_characterization("/home/scott/Downloads/",
-                                                        b1_size_vect = c(10000, 10000, 1000, 250, 250, 100),
-                                                        b2_size_vect = c(10000, 1000, 1000, 2000, 250, 100))
 

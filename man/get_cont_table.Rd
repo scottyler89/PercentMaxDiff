@@ -7,15 +7,15 @@
 get_cont_table(x, y)
 }
 \arguments{
-\item{x}{a vector that can be interpreted as a factor}
+\item{x}{a vector that can be interpreted as a factor. Should be clusters}
 
-\item{y}{a vector that can be interpreted as a factor}
+\item{y}{a vector that can be interpreted as a factor. Should be batches}
 }
 \value{
 a contingency matrix with x quantified in rows, y quantified in columns
 }
 \description{
-\code{get_cont_table} gets a congingency table that quantifies two factors against each other, assuming that they are in the same order.
+\code{get_cont_table} Gets a congingency table that quantifies two factors against each other, assuming that they are in the same order.
 }
 \examples{
    x <- rep( c( rep(1, 50), rep(2, 50) ), 2)

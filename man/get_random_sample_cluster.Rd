@@ -15,7 +15,7 @@ get_random_sample_cluster(prob_vect, num_samples)
 a vector of simulated cluster labels of length \code{num_samples} based on the probility vector that codes the relative abundance of each cluster.
 }
 \description{
-\code{get_random_sample_cluster} takes in a probability vector & the number of samples to simulate; returns that number of samples, fitting the specified proportions.
+\code{get_random_sample_cluster} Takes in a probability vector & the number of samples to simulate; returns that number of samples, fitting the specified proportions.
 }
 \examples{
    prob_vect <- c(.25, .25, .5)

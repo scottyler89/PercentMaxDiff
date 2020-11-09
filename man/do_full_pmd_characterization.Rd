@@ -4,10 +4,19 @@
 \alias{do_full_pmd_characterization}
 \title{do_full_pmd_characterization}
 \usage{
-do_full_pmd_characterization(directory = "")
+do_full_pmd_characterization(
+  directory = "",
+  b1_size_vect = c(1000, 10000, 10000, 10000, 250),
+  b2_size_vect = c(1000, 1000, 500, 10000, 250)
+)
 }
 \arguments{
-\item{directory}{the directory for putting the output image}
+\item{directory}{the directory for putting the output image. This isn't needed though;
+we'll skip the plotting in that case.}
+
+\item{b1_size_vect}{a vector denoting the size for the first batch for the given iteration}
+
+\item{b2_size_vect}{a vector denoting the size for the second batch for the given iteration}
 }
 \value{
 Null
@@ -16,5 +25,6 @@ Null
 \code{do_full_pmd_characterization} Run the PMD characterization over a range of power conditions.
 }
 \examples{
-   do_full_pmd_characterization()
+   pmd_bench_table_combined <- do_full_pmd_characterization(b1_size_vect = c(250, 250),
+                                                            b2_size_vect = c(500, 1000))
 }
