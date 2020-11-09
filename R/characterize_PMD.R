@@ -6,7 +6,11 @@
 #' @param iters the number of iterations for each condition
 #' @importFrom MASS fitdistr
 #' @importFrom stats chisq.test
-#' @return out_df A dataframe that has the results of the characterization
+#' @return list object
+#'    \enumerate{
+#'    \item \code{out_df}  A dataframe that has the results of the characterization. Also returns a vector 
+#'    \item \code{null_df} A dataframe with the vector of the PMDs generated from the null distribution of the input.
+#'    }
 #' @include PercentMaximumDifference.R
 #' @examples
 #'    characterize_pmd()
@@ -21,6 +25,8 @@ characterize_pmd <- function(num_cells_b1 = 1000,
     total_cells <- c()
     num_clust <- c()
     dataset_sizes <- c()
+    null_ds_names <- c()
+    pmd_null_vect <- c()
     min_of_expected_mat <- c()
     lambda_estimate <- c()
     iter_vect <- c()
@@ -29,6 +35,7 @@ characterize_pmd <- function(num_cells_b1 = 1000,
     num_shared_vect <- c()
     for (iter in seq(from = 1, to = iters)) {
         for (num_shared in num_clust_shared){
+            temp_ds_name <- paste(num_cells_b1, "vs", num_cells_b2, sep="_")
             clust_prob_1 <- rep(1,max_clust) / max_clust
             clust_prob_2 <- rep(1,max_clust) / max_clust
             clust_vect_1 <- get_random_sample_cluster(clust_prob_1, num_cells_b1)
@@ -40,6 +47,10 @@ characterize_pmd <- function(num_cells_b1 = 1000,
             cont_mat <- get_cont_table(as.factor(clusters), as.factor(batches))
             expected_mat <- chisq.test(cont_mat)$expected
             pmd_null <- get_pmd_null_vect(expected_mat, num_sim = 100)
+            if (num_shared == 0) {
+                null_ds_names <- c(null_ds_names, rep(temp_ds_name, length(pmd_null)) )
+                pmd_null_vect <- c(pmd_null_vect, pmd_null)
+            }
             temp_fit <- fitdistr(pmd_null, densfun="poisson")
             temp_lambda <- as.numeric(temp_fit$estimate)
             final_pmd <- (temp_pmd - temp_lambda) / (1 - temp_lambda)
@@ -47,7 +58,7 @@ characterize_pmd <- function(num_cells_b1 = 1000,
             iter_vect <- c(iter_vect, iter)
             total_cells <- c(total_cells, length(clusters))
             min_of_expected_mat <- c(min_of_expected_mat, min(expected_mat))
-            dataset_sizes <- c(dataset_sizes, paste(num_cells_b1, "vs", num_cells_b2, sep="_"))
+            dataset_sizes <- c(dataset_sizes, temp_ds_name)
             num_clust <- c(num_clust, length(unique(clusters)))
             lambda_estimate <- c(lambda_estimate, temp_lambda)
             pmd_raw_vect <- c(pmd_raw_vect, temp_pmd)
@@ -67,7 +78,12 @@ characterize_pmd <- function(num_cells_b1 = 1000,
                         num_non_shared_clusters = num_shared_vect,
                         raw_pmd = pmd_raw_vect,
                         pmd = pmd_vect)
-    return(out_df)
+    null_df <- data.frame(dataset_sizes = null_ds_names,
+                          pmd_null = pmd_null_vect)
+    return_obj <- list()
+    return_obj$out_df <- out_df
+    return_obj$null_df <- null_df
+    return(return_obj)
 }
 
 
@@ -89,32 +105,34 @@ characterize_pmd <- function(num_cells_b1 = 1000,
 #' @name do_full_pmd_characterization
 #' @export
 do_full_pmd_characterization<-function(directory = '', 
-                                        b1_size_vect = c(1000,
-                                                        10000,
-                                                        10000,
-                                                        10000,
-                                                        250), 
-                                        b2_size_vect = c(1000,
-                                                        1000,
-                                                        500,
-                                                        10000,
-                                                        250)) {
+                                        b1_size_vect = c(10000, 10000, 1000, 250, 250, 100), 
+                                        b2_size_vect = c(10000, 1000, 1000, 2000, 250, 100)) {
     results_list <- list()
+    null_list <- list()
     run_names <- c()
     for (i in seq(from = 1, to = length(b1_size_vect))) {
         temp_b1_size <- b1_size_vect[i]
         temp_b2_size <- b2_size_vect[i]
         temp_run_name <- paste(temp_b1_size, "vs", temp_b2_size,sep="_")
         run_names <- c(run_names, temp_run_name)
-        results_list[[temp_run_name]] <- characterize_pmd(num_cells_b1 = temp_b1_size,
-                                                        num_cells_b2 = temp_b2_size)
+        temp_obj <- characterize_pmd(num_cells_b1 = temp_b1_size,
+                                     num_cells_b2 = temp_b2_size)
+        results_list[[temp_run_name]] <- temp_obj$out_df
+        null_list[[temp_run_name]] <- temp_obj$null_df
     }
     out_df_names <- names(results_list[[run_names[1]]])
     pmd_bench_table_combined <- results_list[[run_names[1]]]
+    null_names <- names(null_list[[run_names[1]]])
+    pmd_null_combined <- null_list[[run_names[1]]]
     for (i in seq(from = 2, to = length(b1_size_vect))){
         pmd_bench_table_combined <- rbind(pmd_bench_table_combined,
                                           results_list[[run_names[i]]])
+        pmd_null_combined <- rbind(pmd_null_combined,
+                                   null_list[[run_names[i]]])
     }
+    names(pmd_bench_table_combined) <- out_df_names
+    names(pmd_null_combined) <- null_names
+    print(pmd_null_combined)
     if (directory != ''){  
         outfile <- paste(directory, "pmd_characterization%01d.png", sep = '/')
         print(outfile)
@@ -123,6 +141,12 @@ do_full_pmd_characterization<-function(directory = '',
                     geom_point(shape = 1) +    # Use hollow circles
                     geom_smooth(method = lm)   # Add linear regression line 
                                      #  (by default includes 95% confidence region)
+        print(p)
+        p <- ggplot(pmd_null_combined, aes(pmd_null, fill = dataset_sizes)) +
+                    geom_density(adjust = 3, alpha=.3)+
+              ylab("Density") + xlab("Raw PMD") +
+              xlim(0,1) +
+              ggtitle("Distribution of raw PMD when no difference by batch")
         print(p)
         p <- ggplot(pmd_bench_table_combined, aes(x = total_number_of_clusters, y = null_distribution_lambda_estimate, color = dataset_sizes)) +
                     geom_point(shape = 1) +    # Use hollow circles
