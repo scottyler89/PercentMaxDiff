@@ -101,13 +101,10 @@ get_percent_max_diff_from_tables<-function(groups1_table, groups2_table){
 get_random_sample_cluster<-function(prob_vect, num_samples){
     cum_sum<-cumsum(prob_vect)
     temp_rand<-runif(num_samples)
-    group_vect<-c()
-    for (i in seq(from = 1, to = num_samples)) {
-        cur_clust<-1
-        while (temp_rand[i]>cum_sum[cur_clust]){
-            cur_clust<-cur_clust+1
-        }
-        group_vect<-c(group_vect, cur_clust)
+    group_vect<-rep(0, num_samples)
+    for (cur_clust in seq(from = 1, to = length(prob_vect)) ) {
+        is_less_than <- as.logical(as.logical(temp_rand < cum_sum[cur_clust]) * as.logical(group_vect == 0) )
+        group_vect[is_less_than] <- cur_clust
     }
     return(group_vect)
 }
