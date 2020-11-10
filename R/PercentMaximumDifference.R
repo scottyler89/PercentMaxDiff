@@ -47,7 +47,7 @@ get_percent_max_resid<-function(observed, expected){
     for (i in seq(from = 1, to =length(num_dataset)) ) {
         baseline_mat[i, i]<-num_dataset[i]
     }
-    base_chi <- chisq.test(baseline_mat)
+    base_chi <- suppressWarnings(chisq.test(baseline_mat))
     max_diff <- sum(abs(base_chi$expected - baseline_mat))
     return(num_diff/max_diff)
 }
@@ -171,7 +171,7 @@ get_pmd_null_vect<-function(expected_mat, num_sim = 10000){
 #' @export
 get_percent_max_diff<-function(group1_labs,group2_labs){
     cont_table<-get_cont_table(as.factor(group2_labs),as.factor(group1_labs))
-    chi_result <- chisq.test(cont_table)
+    chi_result <- suppressWarnings(chisq.test(cont_table))
     observed<-cont_table
     expected<-chi_result$expected
     temp_percent_max_difference<-get_percent_max_resid(observed,expected)
@@ -236,14 +236,14 @@ get_percent_max_diff<-function(group1_labs,group2_labs){
 #' @export
 pmd_from_cont_table<-function(cont_table, num_sim = 10000){
     pmd_results<-list()
-    chi_result <- chisq.test(cont_table)
+    chi_result <- suppressWarnings(chisq.test(cont_table))
     cur_pmd<-get_percent_max_resid(cont_table,chi_result$expected)
     pmd_results$pmd_null<-get_pmd_null_vect(chi_result$expected, num_sim = num_sim)
     pmd_results$cont_table<-cont_table
     pmd_results$pmd_raw<-cur_pmd
     pmd_results$chi<-chi_result
     pmd_results$p.value<-sum(cur_pmd<pmd_results$pmd_null)/num_sim
-    temp_fit<-fitdistr(pmd_results$pmd_null, densfun="poisson")
+    temp_fit<-suppressWarnings(fitdistr(pmd_results$pmd_null, densfun="poisson"))
     lambda <- as.numeric(temp_fit$estimate)
     pmd_results$pmd_null_lambda <- lambda
     ## lambda is the center of mass of the null distribution.
