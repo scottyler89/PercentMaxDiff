@@ -23,6 +23,9 @@ Percent Maximum Difference provides a metric that enables the measurement of how
 
 # Installation
 
+`devtools::github_install('scottyler89/PercentMaxDiff')`
+
+Although, this package has also been submitted to Bioconductor; we'll update this section once it's accpeted there!
 
 
 # Examples
@@ -53,17 +56,18 @@ pmd_res <- pmd(batch, clusters)
 
 The resultant object is a list with several useful metrics that describe how similar batches are to each other based on their clustering results.
 
-* *cont_table*: The contingency table of clusters (rows) and batches (columns)
+* _*cont_table*_: The contingency table of clusters (rows) and batches (columns)
 
-* *chi*: A list containing all of the results from a traditional Chi Sqr as with the chisq.test function.
+* _*expected*_: The expected matrix, as with a Chi-square test.
 
-*  *pmd*: The percent maximum difference (pmd) of the input dataset.
+*  _*pmd_null*_: Simulations of the null distribution of PMDs using the observed global percentage of cluster abundances across all batches with the observed batch sizes to match the input. Note that this will approach zero, but due to random sampling, typically will never actually get there. That's what makes having this null background useful.
 
-*  *pmd_null*: Simulations of the null distribution of PMDs using the observed global percentage of cluster abundances across all batches with the observed batch sizes to match the input. Note that this will approach zero, but due to random sampling, typically will never actually get there. That's what makes having this null background useful.
+* _*pmd_null_lambda*_: The lambda value of the null distributions Poisson fit. 
 
-* *pmd_z*: The Z-statistic for how different the observed PMD is from the distribution of null PMDs. However, in many cases, the null background distribution of PMDs is a skewed Poisson or beta-like distribution so a Z-statistic is less meaningful in that case. The returned *p.value* however is generated as an empirical p-value as measured against the simulations.
+* _*p.value*_: Significance for whether or not batches are different in their cellular composition. This is determined through the generating *num_sim* null distributions, and emperically measuring the number of times the observed PMD was greater than the PMDs generated from the null distribution. Low p-values indicate that the batches are indeed different from each other.
 
-* *p.value*: Significance for whether or not batches are different in their cellular composition. This is determined through the generating *num_sim* null distributions, and emperically measuring the number of times the observed PMD was greater than the PMDs generated from the null distribution. Low p-values indicate that the batches are indeed different from each other.
+* _*pmd*): The percent maximum difference (pmd) of the input dataset.
+
 
 
 ## Looking at significance

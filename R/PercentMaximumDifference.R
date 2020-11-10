@@ -216,22 +216,19 @@ get_percent_max_diff<-function(group1_labs,group2_labs){
 #'    \enumerate{
 #'    \item \code{cont_table} The contingency table of clusters (rows) and batches (columns)
 #'    \item \code{expected} The expected matrix, as with a Chi-square test.
-#'    \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
 #'    \item \code{pmd_null} Simulations of the null distribution of PMDs using the 
 #'           observed global percentage of cluster abundances across all batches 
 #'           with the observed batch sizes to match the input.
 #'           Note that this will approach zero, but due to random sampling, typically will
 #'           never actually get there. That's what makes having this null background useful.
-#'    \item \code{pmd_z} The Z-statistic for how different the observed PMD is from the 
-#'           distribution of null PMDs. However, in many cases, the
-#'           null background distribution of PMDs is a skewed Poisson or beta-like distribution
-#'           so a Z-statistic is less meaningful in that case. The returned \code{p.value} 
-#'           however is generated as an empirical p-value as measured against the simulations.
+#'     \item \code{pmd_null_lambda} The lambda value of the null distributions Poisson fit. 
+#'           This is used in calculating the final PMD value compared to the raw PMD value.
 #'     \item \code{p.value} - Significance for whether or not batches are different in their cellular composition.
 #'           This is determined through the generating \code{num_sim} null distributions, 
 #'           and emperically measuring the number of times the observed PMD was greater 
 #'           than the PMDs generated from the null distribution.
 #'           Low p-values indicate that the batches are indeed different from each other.
+#'     \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
 #'    }
 #' @examples
 #'    ## generate the contingency table
@@ -239,7 +236,6 @@ get_percent_max_diff<-function(group1_labs,group2_labs){
 #'    ## Note that the clusters are in rows, and the batches are in columns 
 #'    ## of this matrix. This is important!
 #'    pmd_res <- pmd_from_cont_table(cont_table)
-#' @importFrom stats sd
 #' @importFrom MASS fitdistr
 #' @name pmd_from_cont_table
 #' @export
@@ -249,11 +245,11 @@ pmd_from_cont_table<-function(cont_table, num_sim = 1000){
     expected <- get_expected(cont_table)
     #cur_pmd<-get_percent_max_resid(cont_table,chi_result$expected)
     cur_pmd<-get_percent_max_resid(cont_table,expected)
-    pmd_results$pmd_null<-get_pmd_null_vect(expected, num_sim = num_sim)
     pmd_results$cont_table<-cont_table
+    pmd_results$expected<-expected
+    pmd_results$pmd_null<-get_pmd_null_vect(expected, num_sim = num_sim)
     pmd_results$pmd_raw<-cur_pmd
     #pmd_results$chi<-chi_result
-    pmd_results$expected<-expected
     pmd_results$p.value<-sum(cur_pmd<pmd_results$pmd_null)/num_sim
     temp_fit<-suppressWarnings(fitdistr(pmd_results$pmd_null, densfun="poisson"))
     lambda <- as.numeric(temp_fit$estimate)
@@ -261,10 +257,10 @@ pmd_from_cont_table<-function(cont_table, num_sim = 1000){
     ## lambda is the center of mass of the null distribution.
     ## This is what controls both the slope and intercept of the PMD line.
     ## Here we'll correct for that
-    null_mean<-mean(pmd_results$pmd_null)
-    null_sd<-sd(pmd_results$pmd_null)
-    pmd_z<-(cur_pmd-null_mean)/null_sd
-    pmd_results$pmd_z<-pmd_z
+    # null_mean<-mean(pmd_results$pmd_null)
+    # null_sd<-sd(pmd_results$pmd_null)
+    # pmd_z<-(cur_pmd-null_mean)/null_sd
+    # pmd_results$pmd_z<-pmd_z
     ## log the final pmd
     pmd_results$pmd <- (cur_pmd - lambda) / (1 - lambda)
     return(pmd_results)
