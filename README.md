@@ -21,7 +21,7 @@ Percent Maximum Difference provides a metric that enables the measurement of how
 
 # Installation
 
-`devtools::github_install('scottyler89/PercentMaxDiff')`
+`devtools::install_github('scottyler89/PercentMaxDiff')`
 
 Although, this package has also been submitted to Bioconductor; we'll update this section once it's accpeted there!
 
@@ -56,17 +56,17 @@ pmd_res <- pmd(batch, clusters)
 
 The resultant object is a list with several useful metrics that describe how similar batches are to each other based on their clustering results.
 
-* _*cont_table*_: The contingency table of clusters (rows) and batches (columns)
+* _*cont_table*_ : The contingency table of clusters (rows) and batches (columns)
 
-* _*expected*_: The expected matrix, as with a Chi-square test.
+* _*expected*_ : The expected matrix, as with a Chi-square test.
 
-*  _*pmd_null*_: Simulations of the null distribution of PMDs using the observed global percentage of cluster abundances across all batches with the observed batch sizes to match the input. Note that this will approach zero, but due to random sampling, typically will never actually get there. That's what makes having this null background useful.
+*  _*pmd_null*_ : Simulations of the null distribution of PMDs using the observed global percentage of cluster abundances across all batches with the observed batch sizes to match the input. Note that this will approach zero, but due to random sampling, typically will never actually get there. That's what makes having this null background useful.
 
-* _*pmd_null_lambda*_: The lambda value of the null distributions Poisson fit. 
+* _*pmd_null_lambda*_ : The lambda value of the null distributions Poisson fit. 
 
-* _*p.value*_: Significance for whether or not batches are different in their cellular composition. This is determined through the generating *num_sim* null distributions, and emperically measuring the number of times the observed PMD was greater than the PMDs generated from the null distribution. Low p-values indicate that the batches are indeed different from each other.
+* _*p.value*_ : Significance for whether or not batches are different in their cellular composition. This is determined through the generating *num_sim* null distributions, and emperically measuring the number of times the observed PMD was greater than the PMDs generated from the null distribution. Low p-values indicate that the batches are indeed different from each other.
 
-* _*pmd*): The percent maximum difference (pmd) of the input dataset.
+* _*pmd*_ : The percent maximum difference (pmd) of the input dataset.
 
 
 
@@ -90,7 +90,7 @@ pmd_res$p.value
 ```
 
 ```
-## [1] 0.996
+## [1] 0.999
 ```
 
 ## comparing two different 'batch correction' or normalization approaches

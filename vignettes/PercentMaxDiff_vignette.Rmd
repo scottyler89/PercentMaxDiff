@@ -23,7 +23,7 @@ Percent Maximum Difference provides a metric that enables the measurement of how
 
 # Installation
 
-`devtools::github_install('scottyler89/PercentMaxDiff')`
+`devtools::install_github('scottyler89/PercentMaxDiff')`
 
 Although, this package has also been submitted to Bioconductor; we'll update this section once it's accpeted there!
 
@@ -56,17 +56,17 @@ pmd_res <- pmd(batch, clusters)
 
 The resultant object is a list with several useful metrics that describe how similar batches are to each other based on their clustering results.
 
-* _*cont_table*_: The contingency table of clusters (rows) and batches (columns)
+* _*cont_table*_ : The contingency table of clusters (rows) and batches (columns)
 
-* _*expected*_: The expected matrix, as with a Chi-square test.
+* _*expected*_ : The expected matrix, as with a Chi-square test.
 
-*  _*pmd_null*_: Simulations of the null distribution of PMDs using the observed global percentage of cluster abundances across all batches with the observed batch sizes to match the input. Note that this will approach zero, but due to random sampling, typically will never actually get there. That's what makes having this null background useful.
+*  _*pmd_null*_ : Simulations of the null distribution of PMDs using the observed global percentage of cluster abundances across all batches with the observed batch sizes to match the input. Note that this will approach zero, but due to random sampling, typically will never actually get there. That's what makes having this null background useful.
 
-* _*pmd_null_lambda*_: The lambda value of the null distributions Poisson fit. 
+* _*pmd_null_lambda*_ : The lambda value of the null distributions Poisson fit. 
 
-* _*p.value*_: Significance for whether or not batches are different in their cellular composition. This is determined through the generating *num_sim* null distributions, and emperically measuring the number of times the observed PMD was greater than the PMDs generated from the null distribution. Low p-values indicate that the batches are indeed different from each other.
+* _*p.value*_ : Significance for whether or not batches are different in their cellular composition. This is determined through the generating *num_sim* null distributions, and emperically measuring the number of times the observed PMD was greater than the PMDs generated from the null distribution. Low p-values indicate that the batches are indeed different from each other.
 
-* _*pmd*): The percent maximum difference (pmd) of the input dataset.
+* _*pmd*_ : The percent maximum difference (pmd) of the input dataset.
 
 
 
@@ -75,7 +75,7 @@ The resultant object is a list with several useful metrics that describe how sim
 Part of the pmd function is running a null background. This mimics the numbers and relative abundnance of your input data, but under the null-hypothesis that your batches were not actually different. These simulations yield a vector of null pmd calculations. You can look at that like so:
 
 ```{r hist_of_null, message=FALSE}
-hist(pmd_res$pmd_null)
+hist(pmd_res$pmd_null, breaks = 15, main = paste("lambda:", pmd_res$pmd_null_lambda))
 ```
 
 Using this null background, an empirical p-value is calculated:
@@ -98,42 +98,76 @@ clust<- c(clust, c(rep(seq_len(4),each=250)+4))
 
 Let's take a look at what that looks like
 
-```
+```{r look_at_three, message=FALSE}
 unique(cbind(batch, clust))
-      batch clust
-# [1,]     1     1
-# [2,]     1     2
-# [3,]     1     3
-# [4,]     1     4
-# [5,]     2     1
-# [6,]     2     2
-# [7,]     2     3
-# [8,]     2     4
-# [9,]     3     5
-#[10,]     3     6
-#[11,]     3     7
-#[12,]     3     8
-
 ```
 
 So this is a situation where we had three batches, 4 clusters that appeared in batches 1 and 2 evenly, but batch 3 had 4 clusters that were specific to it, and had none of the clusters that appear in the first two batches.
 
 Let's run the PMD on it to quantify how similar these batches are overall.
 
-```
-## This will take a few minutes because of the 10000 simulations.
-pmd_res <- pmd(batch, clust)
-print(pmd_res$pmd)
-print(pmd_res$p.value)
-# > print(pmd_res$p.value)
-# [1] 0
-# > print(pmd_res$pmd)
-# [1] 0.6666667
+```{r run_three_batches, message=FALSE}
+## This will take a few seconds because of the simulations.
+pmd_res_3_perfect <- pmd(batch, clust)
+pmd_res_3_perfect$pmd_raw
+pmd_res_3_perfect$pmd
+pmd_res_3_perfect$p.value
 ```
 
-The PMD in this case is .6666. That's because 2/3rds of the cells come from clusters that are shared across batches, while the remaining 1/3rd is from batch 3 that was completely different from the others. The P-value is 0 (or in this case just more significant that the 10000 null simulations run in which there was no pattern by batch). 
+The Raw PMD in this case is 0.66667. That's because exactly 2/3rds of the cells come from clusters that are shared across batches, while the remaining 1/3rd is from batch 3 that was completely different from the others. The P-value is 0 (or in this case just more significant that the 1000 null simulations run in which there was no pattern by batch).
+
+Because of random Poisson sampling, there is a background level of noise that needs to be corrected for. That's why the final pmd value is actually slightly less than 2/3rds.
+
+Let's see what it would look like in a more realistic scenario using the \code{get_random_sample_cluster} function.
+
+```{r run_three_batches_realistic, message=FALSE}
+## generate the random cluster labels based on the probability vectors fed into the first argument
+batch_size <- 500
+batch1_clusters <- get_random_sample_cluster(c(rep(.25,4),rep(0,4)),batch_size)
+batch2_clusters <- get_random_sample_cluster(c(rep(.25,4),rep(0,4)),batch_size)
+batch3_clusters <- get_random_sample_cluster(c(rep(0,4),rep(.25,4)),batch_size)
+## make the batch labels
+batch1_labels <- rep("batch1",batch_size)
+batch2_labels <- rep("batch2",batch_size)
+batch3_labels <- rep("batch3",batch_size)
+## collate the final batch and cluster vectors
+realistic_batch <- c(batch1_labels,
+                     batch2_labels,
+                     batch3_labels)
+realistic_clust <- c(batch1_clusters,
+                     batch2_clusters,
+                     batch3_clusters)
+# run the pmd function!
+pmd_res_3_realistic <- pmd(realistic_batch, realistic_clust)
+pmd_res_3_realistic$pmd_raw
+pmd_res_3_realistic$pmd
+pmd_res_3_realistic$p.value
+```
 
 Note that you could also run these assays on each batch pairwise if you want to do something like a pairwise post-hoc.
 
+
+```{r run_post_hoc, message=FALSE}
+## batch 1 vs batch 2 
+pmd_res_1v2 <- pmd(c(batch1_labels, batch2_labels),
+               c(batch1_clusters, batch2_clusters))
+pmd_res_1v2$pmd_raw
+pmd_res_1v2$pmd
+pmd_res_1v2$p.value
+
+## batch 1 vs batch 3
+pmd_res_1v3 <- pmd(c(batch1_labels, batch3_labels),
+               c(batch1_clusters, batch3_clusters))
+pmd_res_1v3$pmd_raw
+pmd_res_1v3$pmd
+pmd_res_1v3$p.value
+
+## batch 2 vs batch 3
+pmd_res_2v3 <- pmd(c(batch2_labels, batch3_labels),
+               c(batch2_clusters, batch3_clusters))
+pmd_res_2v3$pmd_raw
+pmd_res_2v3$pmd
+pmd_res_2v3$p.value
+```
 
 
