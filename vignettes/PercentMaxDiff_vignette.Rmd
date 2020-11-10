@@ -1,5 +1,5 @@
 ---
-title: "The PercentMaximumDifference user's guide"
+title: "The PercentMaxDiff user's guide"
 author: "Scott Tyler"
 date: "11/05/2020"
 output: 
@@ -9,7 +9,7 @@ output:
 vignette: >
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{"The PercentMaximumDifference user's guide"}
+  %\VignetteIndexEntry{"The PercentMaxDiff user's guide"}
 ---
 
 ```{r setup, include=FALSE}
@@ -29,7 +29,7 @@ Percent Maximum Difference provides a metric that enables the measurement of how
 ## Running PMD on batch/clustering results
 
 ```{r two_batches, message=FALSE}
-library("PercentMaximumDifference")
+library("PercentMaxDiff")
 ## generate a vector that represents batch
 batch <- rep(seq_len(2),each=100)
 ## generate a vector that represents clusters

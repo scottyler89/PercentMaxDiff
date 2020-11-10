@@ -96,7 +96,7 @@ characterize_pmd <- function(num_cells_b1 = 1000,
 #' @param b2_size_vect a vector denoting the size for the second batch for the given iteration
 #' @include PercentMaximumDifference.R
 #' @return Null
-#' @importFrom ggplot2 ggplot geom_point geom_smooth aes
+#' @importFrom ggplot2 ggplot geom_point geom_smooth aes geom_density ylab xlab xlim ggtitle
 #' @importFrom grDevices dev.off png
 #' @importFrom stats loess lm
 #' @examples
@@ -132,7 +132,6 @@ do_full_pmd_characterization<-function(directory = '',
     }
     names(pmd_bench_table_combined) <- out_df_names
     names(pmd_null_combined) <- null_names
-    print(pmd_null_combined)
     if (directory != ''){  
         outfile <- paste(directory, "pmd_characterization%01d.png", sep = '/')
         print(outfile)

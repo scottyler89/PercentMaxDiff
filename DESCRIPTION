@@ -1,10 +1,11 @@
-Package: PercentMaximumDifference
+Package: PercentMaxDiff
 Type: Package
 Title: Percent Maximum Difference
-Version: 0.0.0
+Version: 0.99.0
 Authors@R: c(
-	person('Scott', 'Tyler', NULL, 'scottyler89@gmail.com', c('cre', 'aut'))
-	)
+	person('Scott', 'Tyler', NULL, 'scottyler89@gmail.com', c('cre', 'aut'), comment=c(ORCID = "0000-0002-7683-6686")),
+	person('Supinda', 'Bunyavanich', NULL, 'supinda.bunyavanich@mssm.edu', c('aut')),
+    person('Eric', 'Schadt', NULL, 'eric.schadt@mssm.edu', c('aut')))
 Description: This tool assesses how large batch effects are using a metric between zero (batches similar) and 1 (batches completely different)
 Imports: stats, knitr, ggplot2, grDevices, MASS
 License: GPL-3

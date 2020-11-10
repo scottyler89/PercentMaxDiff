@@ -6,8 +6,8 @@
 \usage{
 do_full_pmd_characterization(
   directory = "",
-  b1_size_vect = c(1000, 10000, 10000, 10000, 250),
-  b2_size_vect = c(1000, 1000, 500, 10000, 250)
+  b1_size_vect = c(10000, 10000, 1000, 250, 250, 100),
+  b2_size_vect = c(10000, 1000, 1000, 2000, 250, 100)
 )
 }
 \arguments{

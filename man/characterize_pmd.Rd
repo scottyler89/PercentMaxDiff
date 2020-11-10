@@ -21,7 +21,11 @@ characterize_pmd(
 \item{iters}{the number of iterations for each condition}
 }
 \value{
-out_df A dataframe that has the results of the characterization
+list object
+   \enumerate{
+   \item \code{out_df}  A dataframe that has the results of the characterization. Also returns a vector 
+   \item \code{null_df} A dataframe with the vector of the PMDs generated from the null distribution of the input.
+   }
 }
 \description{
 \code{characterize_pmd} Run the PMD characterization over a range of power conditions.

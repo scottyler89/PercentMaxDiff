@@ -2,7 +2,7 @@
 knitr::opts_chunk$set(echo = TRUE)
 
 ## ----two_batches, message=FALSE-----------------------------------------------
-library("PercentMaximumDifference")
+library("PercentMaxDiff")
 ## generate a vector that represents batch
 batch <- rep(seq_len(2),each=100)
 ## generate a vector that represents clusters

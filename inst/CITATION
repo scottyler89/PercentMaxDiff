@@ -1,0 +1,18 @@
+authors      <- eval(parse(text = packageDescription('PercentMaxDiff', fields = 'Authors@R')))
+year         <- 2020L
+title        <- 'UMI Downsampling Provides a Robust Method of scRNAseq Batch Correction'
+organization <- 'Icahn School of Medicine at Mount Sinai'
+
+
+bibentry('Manual', sprintf(
+		'%s %s et al. (%s): %s. %s.',
+		authors[[1]]$given, authors[[1]]$family, year,
+		title, organization),
+	title        = title,
+	volume       = 0L,
+	number       = 0L,
+	author       = authors,
+	organization = organization,
+	address      = 'New York 1, New York, United States',
+	year         = year,
+	note         = 'More information at <https://bitbucket.org/scottyler892/percentmaximumdifference>')
