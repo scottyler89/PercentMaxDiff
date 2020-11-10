@@ -4,7 +4,7 @@
 \alias{get_pmd_null_vect}
 \title{get_pmd_null_vect}
 \usage{
-get_pmd_null_vect(expected_mat, num_sim = 10000)
+get_pmd_null_vect(expected_mat, num_sim = 1000)
 }
 \arguments{
 \item{expected_mat}{A matrix that represents a contingency matrix of clusters (rows) and batch (cols).}

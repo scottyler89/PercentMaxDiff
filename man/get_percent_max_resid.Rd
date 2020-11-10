@@ -19,5 +19,5 @@ the percentage of asymmetry relative to the maximum possible asymmetry.
 }
 \examples{
    dummy_mat <- matrix(c(500, 250, 100, 1000, 500, 200),nrow = 3, ncol=2)
-   get_percent_max_resid(dummy_mat, chisq.test(dummy_mat)$expected)
+   get_percent_max_resid(dummy_mat, get_expected(dummy_mat))
 }

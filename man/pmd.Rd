@@ -4,7 +4,7 @@
 \alias{pmd}
 \title{Percent Maximum Difference}
 \usage{
-pmd(batch_labels, cluster_labels, num_sim = 10000)
+pmd(batch_labels, cluster_labels, num_sim = 1000)
 }
 \arguments{
 \item{batch_labels}{a vector of labels for the batch that each sample (or cell for scRNAseq) came from. Can be a string or factor.}
@@ -17,8 +17,7 @@ pmd(batch_labels, cluster_labels, num_sim = 10000)
 list object
    \enumerate{
    \item \code{cont_table} The contingency table of clusters (rows) and batches (columns)
-   \item \code{chi} A list containing all of the results from a traditional Chi Sqr
-          as with the chisq.test function.
+   \item \code{expected} The expected matrix, as with a Chi-square test.
    \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
    \item \code{pmd_null} Simulations of the null distribution of PMDs using the 
           observed global percentage of cluster abundances across all batches 
@@ -58,7 +57,7 @@ list object
 }
 \examples{
    ## first using batch and cluster labels
-   batch <- as.factor(rep(seq_len(2),each=100))
-   clusters <- as.factor(rep(rep(seq_len(2),each=50),2))
-   pmd_res <- pmd(batch, clusters)
+   batch_labels <- as.factor(rep(seq_len(2),each=100))
+   cluster_labels <- as.factor(rep(rep(seq_len(2),each=50),2))
+   pmd_res <- pmd(batch_labels, cluster_labels)
 }

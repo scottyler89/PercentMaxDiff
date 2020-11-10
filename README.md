@@ -86,7 +86,7 @@ pmd_res$p.value
 ```
 
 ```
-## [1] 0.9958
+## [1] 0.996
 ```
 
 ## comparing two different 'batch correction' or normalization approaches

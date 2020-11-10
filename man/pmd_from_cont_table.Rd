@@ -4,7 +4,7 @@
 \alias{pmd_from_cont_table}
 \title{Percent Maximum Difference from a contingency table}
 \usage{
-pmd_from_cont_table(cont_table, num_sim = 10000)
+pmd_from_cont_table(cont_table, num_sim = 1000)
 }
 \arguments{
 \item{cont_table}{As an alternative to passing in batch and cluster labels, you can also just pass in the contingency table.
@@ -16,8 +16,7 @@ Note that the clusters MUST be in the rows, and the batches must be the columns 
 list object
    \enumerate{
    \item \code{cont_table} The contingency table of clusters (rows) and batches (columns)
-   \item \code{chi} A list containing all of the results from a traditional Chi Sqr
-          as with the chisq.test function.
+   \item \code{expected} The expected matrix, as with a Chi-square test.
    \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
    \item \code{pmd_null} Simulations of the null distribution of PMDs using the 
           observed global percentage of cluster abundances across all batches 
@@ -56,7 +55,7 @@ list object
                         or in other words, each cluster was fully batch specific.
 }
 \examples{
-   ## generate 
+   ## generate the contingency table
    cont_table <- matrix(c(50,100,30,80,90,50),nrow = 3, ncol = 2)
    ## Note that the clusters are in rows, and the batches are in columns 
    ## of this matrix. This is important!

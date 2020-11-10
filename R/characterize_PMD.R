@@ -5,7 +5,6 @@
 #' @param num_clust_shared the number of clusters that are shared across the two batches
 #' @param iters the number of iterations for each condition
 #' @importFrom MASS fitdistr
-#' @importFrom stats chisq.test
 #' @return list object
 #'    \enumerate{
 #'    \item \code{out_df}  A dataframe that has the results of the characterization. Also returns a vector 
@@ -45,7 +44,7 @@ characterize_pmd <- function(num_cells_b1 = 1000,
             temp_pmd <- get_percent_max_diff(batches, clusters)
             ## now get the null, fit the Poisson distribution & log the params
             cont_mat <- get_cont_table(as.factor(clusters), as.factor(batches))
-            expected_mat <- chisq.test(cont_mat)$expected
+            expected_mat <- get_expected(cont_mat)
             pmd_null <- get_pmd_null_vect(expected_mat, num_sim = 100)
             if (num_shared == 0) {
                 null_ds_names <- c(null_ds_names, rep(temp_ds_name, length(pmd_null)) )

@@ -35,8 +35,7 @@ get_cont_table<-function(x, y){
 #' @return the percentage of asymmetry relative to the maximum possible asymmetry.
 #' @examples
 #'    dummy_mat <- matrix(c(500, 250, 100, 1000, 500, 200),nrow = 3, ncol=2)
-#'    get_percent_max_resid(dummy_mat, chisq.test(dummy_mat)$expected)
-#' @importFrom stats chisq.test
+#'    get_percent_max_resid(dummy_mat, get_expected(dummy_mat))
 #' @name get_percent_max_resid
 #' @export
 get_percent_max_resid<-function(observed, expected){
@@ -47,8 +46,9 @@ get_percent_max_resid<-function(observed, expected){
     for (i in seq(from = 1, to =length(num_dataset)) ) {
         baseline_mat[i, i]<-num_dataset[i]
     }
-    base_chi <- suppressWarnings(chisq.test(baseline_mat))
-    max_diff <- sum(abs(base_chi$expected - baseline_mat))
+    #base_chi <- suppressWarnings(chisq.test(baseline_mat))
+    base_expected <- get_expected(baseline_mat)
+    max_diff <- sum(abs(base_expected - baseline_mat))
     return(num_diff/max_diff)
 }
 
@@ -122,7 +122,7 @@ get_random_sample_cluster<-function(prob_vect, num_samples){
 #'    pmd_null <- get_pmd_null_vect(dummy_mat)
 #' @name get_pmd_null_vect
 #' @export
-get_pmd_null_vect<-function(expected_mat, num_sim = 10000){
+get_pmd_null_vect<-function(expected_mat, num_sim = 1000){
     total_cells<-sum(expected_mat)
     num_clust<-dim(expected_mat)[1]
     num_batch<-dim(expected_mat)[2]
@@ -141,16 +141,29 @@ get_pmd_null_vect<-function(expected_mat, num_sim = 10000){
             batch_vect<-c(batch_vect,rep(b,cells_per_batch[b]))
             temp_clusts<-get_random_sample_cluster(clust_probs, cells_per_batch[b])
             clust_vect<-c(clust_vect, temp_clusts)
-            # ## populate the matrix
-            # for (cell in temp_clusts){
-            #   temp_mat[cell,b]<-temp_mat[cell,b]+1
-            # }
         }
-        pmd_null_vect<-c(pmd_null_vect, get_percent_max_diff(batch_vect,clust_vect))
+        ##
+        # null_cont<-get_cont_table(as.factor(clust_vect),as.factor(batch_vect)) 
+        # null_expect <- get_expected(null_cont)
+        # pmd_null_vect<-c(pmd_null_vect, get_percent_max_resid(null_cont,null_expect))
+        pmd_null_vect<-c(pmd_null_vect, get_percent_max_diff(batch_vect, clust_vect))
     }
     return(pmd_null_vect)
 }
 
+
+#' get_expected
+#' @description \code{get_expected} Gets the expected matrix, as with a Chi Squared test.
+#' @param cont_table The observed contingency table
+#' @return a matrix representing the 'expected' values if there were no pattern
+#' @examples
+#'    cont_table <- matrix(c(50,100,30,80,90,50),nrow = 3, ncol = 2)
+#'    get_expected(cont_table)
+#' @name get_expected
+#' @export
+get_expected<-function(cont_table){
+    return(matrix(rowSums(cont_table)/sum(cont_table),ncol=1) %*% colSums(cont_table))
+}
 
 
 
@@ -163,15 +176,15 @@ get_pmd_null_vect<-function(expected_mat, num_sim = 10000){
 #'    batch <- rep(seq_len(2),each=100)
 #'    clusters <- rep(rep(seq_len(2),each=50),2)
 #'    pmd_num <- get_percent_max_diff(batch, clusters)
-#' @importFrom stats chisq.test
 #' @name get_percent_max_diff
 #' @export
 get_percent_max_diff<-function(group1_labs,group2_labs){
     cont_table<-get_cont_table(as.factor(group2_labs),as.factor(group1_labs))
-    chi_result <- suppressWarnings(chisq.test(cont_table))
-    observed<-cont_table
-    expected<-chi_result$expected
-    temp_percent_max_difference<-get_percent_max_resid(observed,expected)
+    #chi_result <- suppressWarnings(chisq.test(cont_table))
+    #observed<-cont_table
+    #expected<-chi_result$expected
+    expected<-get_expected(cont_table)
+    temp_percent_max_difference<-get_percent_max_resid(cont_table,expected)
     return(temp_percent_max_difference)
 }
 
@@ -202,8 +215,7 @@ get_percent_max_diff<-function(group1_labs,group2_labs){
 #' @return list object
 #'    \enumerate{
 #'    \item \code{cont_table} The contingency table of clusters (rows) and batches (columns)
-#'    \item \code{chi} A list containing all of the results from a traditional Chi Sqr
-#'           as with the chisq.test function.
+#'    \item \code{expected} The expected matrix, as with a Chi-square test.
 #'    \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
 #'    \item \code{pmd_null} Simulations of the null distribution of PMDs using the 
 #'           observed global percentage of cluster abundances across all batches 
@@ -222,23 +234,26 @@ get_percent_max_diff<-function(group1_labs,group2_labs){
 #'           Low p-values indicate that the batches are indeed different from each other.
 #'    }
 #' @examples
-#'    ## generate 
+#'    ## generate the contingency table
 #'    cont_table <- matrix(c(50,100,30,80,90,50),nrow = 3, ncol = 2)
 #'    ## Note that the clusters are in rows, and the batches are in columns 
 #'    ## of this matrix. This is important!
 #'    pmd_res <- pmd_from_cont_table(cont_table)
-#' @importFrom stats chisq.test sd
+#' @importFrom stats sd
 #' @importFrom MASS fitdistr
 #' @name pmd_from_cont_table
 #' @export
-pmd_from_cont_table<-function(cont_table, num_sim = 10000){
+pmd_from_cont_table<-function(cont_table, num_sim = 1000){
     pmd_results<-list()
-    chi_result <- suppressWarnings(chisq.test(cont_table))
-    cur_pmd<-get_percent_max_resid(cont_table,chi_result$expected)
-    pmd_results$pmd_null<-get_pmd_null_vect(chi_result$expected, num_sim = num_sim)
+    #chi_result <- suppressWarnings(chisq.test(cont_table))
+    expected <- get_expected(cont_table)
+    #cur_pmd<-get_percent_max_resid(cont_table,chi_result$expected)
+    cur_pmd<-get_percent_max_resid(cont_table,expected)
+    pmd_results$pmd_null<-get_pmd_null_vect(expected, num_sim = num_sim)
     pmd_results$cont_table<-cont_table
     pmd_results$pmd_raw<-cur_pmd
-    pmd_results$chi<-chi_result
+    #pmd_results$chi<-chi_result
+    pmd_results$expected<-expected
     pmd_results$p.value<-sum(cur_pmd<pmd_results$pmd_null)/num_sim
     temp_fit<-suppressWarnings(fitdistr(pmd_results$pmd_null, densfun="poisson"))
     lambda <- as.numeric(temp_fit$estimate)
@@ -281,8 +296,7 @@ pmd_from_cont_table<-function(cont_table, num_sim = 10000){
 #' @return list object
 #'    \enumerate{
 #'    \item \code{cont_table} The contingency table of clusters (rows) and batches (columns)
-#'    \item \code{chi} A list containing all of the results from a traditional Chi Sqr
-#'           as with the chisq.test function.
+#'    \item \code{expected} The expected matrix, as with a Chi-square test.
 #'    \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
 #'    \item \code{pmd_null} Simulations of the null distribution of PMDs using the 
 #'           observed global percentage of cluster abundances across all batches 
@@ -302,14 +316,13 @@ pmd_from_cont_table<-function(cont_table, num_sim = 10000){
 #'    }
 #' @examples
 #'    ## first using batch and cluster labels
-#'    batch <- as.factor(rep(seq_len(2),each=100))
-#'    clusters <- as.factor(rep(rep(seq_len(2),each=50),2))
-#'    pmd_res <- pmd(batch, clusters)
-#' @importFrom stats chisq.test sd
+#'    batch_labels <- as.factor(rep(seq_len(2),each=100))
+#'    cluster_labels <- as.factor(rep(rep(seq_len(2),each=50),2))
+#'    pmd_res <- pmd(batch_labels, cluster_labels)
 #' @importFrom MASS fitdistr
 #' @name pmd
 #' @export
-pmd<-function(batch_labels, cluster_labels, num_sim = 10000){
+pmd<-function(batch_labels, cluster_labels, num_sim = 1000){
     cont_table<-get_cont_table(as.factor(cluster_labels),as.factor(batch_labels))
     pmd_results <- pmd_from_cont_table(cont_table, num_sim = num_sim)
     return(pmd_results)
