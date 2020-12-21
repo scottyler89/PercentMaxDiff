@@ -2,7 +2,7 @@
 % Please edit documentation in R/PercentMaximumDifference.R
 \name{pmd_posthoc}
 \alias{pmd_posthoc}
-\title{Percent Maximum Difference}
+\title{Percent Maximum Difference Posthoc Test}
 \usage{
 pmd_posthoc(pmd_result, num_sim = NULL, adjust_method = "BH")
 }
@@ -16,10 +16,10 @@ pmd_posthoc(pmd_result, num_sim = NULL, adjust_method = "BH")
 \value{
 list object
    \enumerate{
-    \item \code{pmd_raw_table} 
-    \item \code{pmd_table} 
-    \item \code{p.value_table} 
-    \item \code{p.value_table_adjusted} 
+    \item \code{pmd_raw_table} The pairwise table of individual raw pmd values (unadjusted for bias)
+    \item \code{pmd_table} The pairwise table of individual pmd values (after adjustment for bias).
+    \item \code{p.value_table} The uncorrected p-values for how different the two batches/classes are from each other.
+    \item \code{p.value_table_adjusted} The multiple comparison corrected p-value table for the batches/classes.
    }
 }
 \description{
@@ -37,9 +37,11 @@ list object
    print(pmd_res$cont_table)
    ## Which makes the percent maximum difference ~ 1/3rd
    print(pmd_res$pmd_raw)
-   ## in a real-world sceanrio, the data wouldn't be this clean beacuse of noise via Poisson sampling
-   ## so the corrected PMD is actually a bit less:
+   ## in a real-world sceanrio, the data wouldn't be this clean beacuse of 
+   ##  noise via Poisson sampling so the corrected PMD is actually a bit less:
+   ## 
    print(pmd_res$pmd)
-   ## Using the pmd_posthoc function, we'll be able to figure out exactly which batch(es) are causing the 1/3rd asymmetry
+   ## Using the pmd_posthoc function, we'll be able to figure out exactly 
+   ## which batch(es) are causing the 1/3rd asymmetry
    pmd_pairwise <- pmd_posthoc(pmd_res)
 }

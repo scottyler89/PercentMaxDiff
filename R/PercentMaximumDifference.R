@@ -449,7 +449,7 @@ pmd<-function(x, y = NULL, num_sim = 1000){
 }
 
 
-#' Percent Maximum Difference
+#' Percent Maximum Difference Posthoc Test
 #' @description \code{pmd_posthoc} The PMD posthoc does a pairwise comparison of all the columns to each other
 #'                                 This allows you to figure out which of the columns were actually different 
 #'                                 from each other. This also gives a quantitative metric for exactly how similar
@@ -459,10 +459,10 @@ pmd<-function(x, y = NULL, num_sim = 1000){
 #' @param adjust_method the method of p-value adjustment 
 #' @return list object
 #'    \enumerate{
-#'     \item \code{pmd_raw_table} 
-#'     \item \code{pmd_table} 
-#'     \item \code{p.value_table} 
-#'     \item \code{p.value_table_adjusted} 
+#'     \item \code{pmd_raw_table} The pairwise table of individual raw pmd values (unadjusted for bias)
+#'     \item \code{pmd_table} The pairwise table of individual pmd values (after adjustment for bias).
+#'     \item \code{p.value_table} The uncorrected p-values for how different the two batches/classes are from each other.
+#'     \item \code{p.value_table_adjusted} The multiple comparison corrected p-value table for the batches/classes.
 #'    }
 #' @examples
 #'    ## first using batch and cluster labels
