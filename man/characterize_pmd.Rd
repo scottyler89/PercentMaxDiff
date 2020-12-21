@@ -8,7 +8,8 @@ characterize_pmd(
   num_cells_b1 = 1000,
   num_cells_b2 = 1000,
   num_clust_shared = seq(from = 0, to = 10),
-  iters = 10
+  iters = 10,
+  pmd_2 = FALSE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ characterize_pmd(
 \item{num_clust_shared}{the number of clusters that are shared across the two batches}
 
 \item{iters}{the number of iterations for each condition}
+
+\item{pmd_2}{A boolean argument from when we had thought about a standardized version of PMD that used squares/sqrts instead of absolute values. It worked much worse, so don't bother using this arg.}
 }
 \value{
 list object

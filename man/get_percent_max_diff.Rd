@@ -2,9 +2,12 @@
 % Please edit documentation in R/PercentMaximumDifference.R
 \name{get_percent_max_diff}
 \alias{get_percent_max_diff}
+\alias{get_percent_max_diff_2}
 \title{get_percent_max_diff}
 \usage{
 get_percent_max_diff(group1_labs, group2_labs)
+
+get_percent_max_diff_2(group1_labs, group2_labs)
 }
 \arguments{
 \item{group1_labs}{a vector of labels for the batch that each sample (or cell for scRNAseq) came from. Can be a string or factor.}
@@ -13,11 +16,18 @@ get_percent_max_diff(group1_labs, group2_labs)
 }
 \value{
 a floating point number of the percent maximum difference
+
+a floating point number of the percent maximum difference
 }
 \description{
 \code{get_percent_max_diff} Gets the Percent Maximum Difference (PMD) for clustering results relative to batch.
+
+\code{get_percent_max_diff_2} DO NOT USE: Gets a standardized version of the Percent Maximum Difference2 (PMD2) for clustering results relative to batch.
 }
 \examples{
+   batch <- rep(seq_len(2),each=100)
+   clusters <- rep(rep(seq_len(2),each=50),2)
+   pmd_num <- get_percent_max_diff(batch, clusters)
    batch <- rep(seq_len(2),each=100)
    clusters <- rep(rep(seq_len(2),each=50),2)
    pmd_num <- get_percent_max_diff(batch, clusters)

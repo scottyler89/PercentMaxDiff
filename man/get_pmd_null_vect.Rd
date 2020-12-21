@@ -2,9 +2,12 @@
 % Please edit documentation in R/PercentMaximumDifference.R
 \name{get_pmd_null_vect}
 \alias{get_pmd_null_vect}
+\alias{get_pmd_null_vect_2}
 \title{get_pmd_null_vect}
 \usage{
 get_pmd_null_vect(expected_mat, num_sim = 1000)
+
+get_pmd_null_vect_2(expected_mat, num_sim = 1000)
 }
 \arguments{
 \item{expected_mat}{A matrix that represents a contingency matrix of clusters (rows) and batch (cols).}
@@ -13,11 +16,17 @@ get_pmd_null_vect(expected_mat, num_sim = 1000)
 }
 \value{
 a vector of floating points that represent a null distribution that matches your input for percent maximum difference
+
+a vector of floating points that represent a null distribution that matches your input for percent maximum difference
 }
 \description{
 \code{get_pmd_null_vect} Takes in a contingency matrix (rows: clusters x columns: batch), and gets a null distribution of expected PMDs if there was no asymmetry based on batch.
+
+\code{get_pmd_null_vect_2} DO NOT USE: Takes in a contingency matrix (rows: clusters x columns: batch), and gets a null distribution of expected PMD2s if there was no asymmetry based on batch.
 }
 \examples{
+   dummy_mat <- matrix(c(500, 250, 100, 1000, 500, 200),nrow = 3, ncol=2)
+   pmd_null <- get_pmd_null_vect(dummy_mat)
    dummy_mat <- matrix(c(500, 250, 100, 1000, 500, 200),nrow = 3, ncol=2)
    pmd_null <- get_pmd_null_vect(dummy_mat)
 }

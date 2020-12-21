@@ -7,7 +7,8 @@
 do_full_pmd_characterization(
   directory = "",
   b1_size_vect = c(10000, 10000, 1000, 250, 250, 100),
-  b2_size_vect = c(10000, 1000, 1000, 2000, 250, 100)
+  b2_size_vect = c(10000, 1000, 1000, 2000, 250, 100),
+  pmd_2 = FALSE
 )
 }
 \arguments{
@@ -17,6 +18,8 @@ we'll skip the plotting in that case.}
 \item{b1_size_vect}{a vector denoting the size for the first batch for the given iteration}
 
 \item{b2_size_vect}{a vector denoting the size for the second batch for the given iteration}
+
+\item{pmd_2}{A boolean argument from when we had thought about a standardized version of PMD that used squares/sqrts instead of absolute values. It worked much worse, so don't bother using this arg.}
 }
 \value{
 Null

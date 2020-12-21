@@ -144,30 +144,33 @@ pmd_res_3_realistic$pmd
 pmd_res_3_realistic$p.value
 ```
 
-Note that you could also run these assays on each batch pairwise if you want to do something like a pairwise post-hoc.
+You can also run a post-hoc analysis of the main result:
 
 
 ```{r run_post_hoc, message=FALSE}
-## batch 1 vs batch 2 
-pmd_res_1v2 <- pmd(c(batch1_labels, batch2_labels),
-               c(batch1_clusters, batch2_clusters))
-pmd_res_1v2$pmd_raw
-pmd_res_1v2$pmd
-pmd_res_1v2$p.value
-
-## batch 1 vs batch 3
-pmd_res_1v3 <- pmd(c(batch1_labels, batch3_labels),
-               c(batch1_clusters, batch3_clusters))
-pmd_res_1v3$pmd_raw
-pmd_res_1v3$pmd
-pmd_res_1v3$p.value
-
-## batch 2 vs batch 3
-pmd_res_2v3 <- pmd(c(batch2_labels, batch3_labels),
-               c(batch2_clusters, batch3_clusters))
-pmd_res_2v3$pmd_raw
-pmd_res_2v3$pmd
-pmd_res_2v3$p.value
+## first using batch and cluster labels
+batch_labels <- paste("batch",rep(seq_len(3),each=100))
+cluster_labels <- paste("cluster",c(rep(rep(seq_len(2),each=50),2),rep(seq_len(2),each=50)+1))
+pmd_res <- pmd(batch_labels, cluster_labels)
+## This is what the cluster/batch contingency table looks like:
+print(pmd_res$cont_table)
+## Which makes the percent maximum difference ~ 1/3rd
+print(pmd_res$pmd_raw)
+## in a real-world sceanrio, the data wouldn't be this clean beacuse of noise via
+## Poisson sampling so the corrected PMD is actually a bit lower:
+print(pmd_res$pmd)
+## Using the pmd_posthoc function, we'll be able to figure out exactly which batch(es) 
+## are causing the 1/3rd asymmetry
+pmd_pairwise <- pmd_posthoc(pmd_res)
+print(pmd_pairwise)
+## looking at the pmd_pairwise$pmd_raw_table, we can clearly see that batch 3 is half different from both batches 1 and 2.
+print(pmd_pairwise$pmd_raw_table)
+## similar to above, because in a real-world example the data wouldn't be so clean, the adjusted PMDs are a bit lower
+print(pmd_pairwise$pmd_table)
+## Now if we look at the pairwise p-values, we see that batch3 is the clear outlier and batches 1 and 2 are very similar
+print(pmd_pairwise$p.value_table)
+## The above are the nominal p-values. Below are the adjusted p-values (BH correction by default)
+print(pmd_pairwise$p.value_table_adjusted)
 ```
 
 

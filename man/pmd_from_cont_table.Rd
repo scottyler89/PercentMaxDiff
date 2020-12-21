@@ -22,8 +22,10 @@ list object
           with the observed batch sizes to match the input.
           Note that this will approach zero, but due to random sampling, typically will
           never actually get there. That's what makes having this null background useful.
+          Note that these are Raw PMD, not adjusted.
     \item \code{pmd_null_lambda} The lambda value of the null distributions Poisson fit. 
           This is used in calculating the final PMD value compared to the raw PMD value.
+    \item \code{pmd_raw} The original, Raw PMD, before power correction
     \item \code{p.value} - Significance for whether or not batches are different in their cellular composition.
           This is determined through the generating \code{num_sim} null distributions, 
           and emperically measuring the number of times the observed PMD was greater 
@@ -33,7 +35,7 @@ list object
    }
 }
 \description{
-\code{pmd} Percent Maximum Difference provides a metric that enables the measurement
+\code{pmd_from_cont_table} Percent Maximum Difference provides a metric that enables the measurement
                         of how similar (PMD near 0) or different (PMD near 1) two batches are
                         based just on clustering results. This can be viewed as an alternative
                         to a Chi-squared type analysis based on a contingency table in which 

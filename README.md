@@ -76,7 +76,7 @@ Part of the pmd function is running a null background. This mimics the numbers a
 
 
 ```r
-hist(pmd_res$pmd_null)
+hist(pmd_res$pmd_null, breaks = 15, main = paste("lambda:", pmd_res$pmd_null_lambda))
 ```
 
 ![plot of chunk hist_of_null](figure/hist_of_null-1.png)
@@ -90,7 +90,7 @@ pmd_res$p.value
 ```
 
 ```
-## [1] 0.999
+## [1] 0.994
 ```
 
 ## comparing two different 'batch correction' or normalization approaches
@@ -107,42 +107,234 @@ clust<- c(clust, c(rep(seq_len(4),each=250)+4))
 
 Let's take a look at what that looks like
 
-```
-unique(cbind(batch, clust))
-      batch clust
-# [1,]     1     1
-# [2,]     1     2
-# [3,]     1     3
-# [4,]     1     4
-# [5,]     2     1
-# [6,]     2     2
-# [7,]     2     3
-# [8,]     2     4
-# [9,]     3     5
-#[10,]     3     6
-#[11,]     3     7
-#[12,]     3     8
 
+```r
+unique(cbind(batch, clust))
+```
+
+```
+##       batch clust
+##  [1,]     1     1
+##  [2,]     1     2
+##  [3,]     1     3
+##  [4,]     1     4
+##  [5,]     2     1
+##  [6,]     2     2
+##  [7,]     2     3
+##  [8,]     2     4
+##  [9,]     3     5
+## [10,]     3     6
+## [11,]     3     7
+## [12,]     3     8
 ```
 
 So this is a situation where we had three batches, 4 clusters that appeared in batches 1 and 2 evenly, but batch 3 had 4 clusters that were specific to it, and had none of the clusters that appear in the first two batches.
 
 Let's run the PMD on it to quantify how similar these batches are overall.
 
+
+```r
+## This will take a few seconds because of the simulations.
+pmd_res_3_perfect <- pmd(batch, clust)
+pmd_res_3_perfect$pmd_raw
 ```
-## This will take a few minutes because of the 10000 simulations.
-pmd_res <- pmd(batch, clust)
+
+```
+## [1] 0.6666667
+```
+
+```r
+pmd_res_3_perfect$pmd
+```
+
+```
+## [1] 0.6526592
+```
+
+```r
+pmd_res_3_perfect$p.value
+```
+
+```
+## [1] 0.001
+```
+
+The Raw PMD in this case is 0.66667. That's because exactly 2/3rds of the cells come from clusters that are shared across batches, while the remaining 1/3rd is from batch 3 that was completely different from the others. The P-value is 0 (or in this case just more significant that the 1000 null simulations run in which there was no pattern by batch).
+
+Because of random Poisson sampling, there is a background level of noise that needs to be corrected for. That's why the final pmd value is actually slightly less than 2/3rds.
+
+Let's see what it would look like in a more realistic scenario using the \code{get_random_sample_cluster} function.
+
+
+```r
+## generate the random cluster labels based on the probability vectors fed into the first argument
+batch_size <- 500
+batch1_clusters <- get_random_sample_cluster(c(rep(.25,4),rep(0,4)),batch_size)
+batch2_clusters <- get_random_sample_cluster(c(rep(.25,4),rep(0,4)),batch_size)
+batch3_clusters <- get_random_sample_cluster(c(rep(0,4),rep(.25,4)),batch_size)
+## make the batch labels
+batch1_labels <- rep("batch1",batch_size)
+batch2_labels <- rep("batch2",batch_size)
+batch3_labels <- rep("batch3",batch_size)
+## collate the final batch and cluster vectors
+realistic_batch <- c(batch1_labels,
+                     batch2_labels,
+                     batch3_labels)
+realistic_clust <- c(batch1_clusters,
+                     batch2_clusters,
+                     batch3_clusters)
+# run the pmd function!
+pmd_res_3_realistic <- pmd(realistic_batch, realistic_clust)
+pmd_res_3_realistic$pmd_raw
+```
+
+```
+## [1] 0.6666667
+```
+
+```r
+pmd_res_3_realistic$pmd
+```
+
+```
+## [1] 0.6466761
+```
+
+```r
+pmd_res_3_realistic$p.value
+```
+
+```
+## [1] 0.001
+```
+
+You can also run a post-hoc analysis of the main result:
+
+
+
+```r
+## first using batch and cluster labels
+batch_labels <- paste("batch",rep(seq_len(3),each=100))
+cluster_labels <- paste("cluster",c(rep(rep(seq_len(2),each=50),2),rep(seq_len(2),each=50)+1))
+pmd_res <- pmd(batch_labels, cluster_labels)
+## This is what the cluster/batch contingency table looks like:
+print(pmd_res$cont_table)
+```
+
+```
+##           batch 1 batch 2 batch 3
+## cluster 1      50      50       0
+## cluster 2      50      50      50
+## cluster 3       0       0      50
+```
+
+```r
+## Which makes the percent maximum difference ~ 1/3rd
+print(pmd_res$pmd_raw)
+```
+
+```
+## [1] 0.3333333
+```
+
+```r
+## in a real-world sceanrio, the data wouldn't be this clean beacuse of noise via
+## Poisson sampling so the corrected PMD is actually a bit lower:
 print(pmd_res$pmd)
-print(pmd_res$p.value)
-# > print(pmd_res$p.value)
-# [1] 0
-# > print(pmd_res$pmd)
-# [1] 0.6666667
 ```
 
-The PMD in this case is .6666. That's because 2/3rds of the cells come from clusters that are shared across batches, while the remaining 1/3rd is from batch 3 that was completely different from the others. The P-value is 0 (or in this case just more significant that the 10000 null simulations run in which there was no pattern by batch). 
+```
+## [1] 0.2864533
+```
 
-Note that you could also run these assays on each batch pairwise if you want to do something like a pairwise post-hoc.
+```r
+## Using the pmd_posthoc function, we'll be able to figure out exactly which batch(es) 
+## are causing the 1/3rd asymmetry
+pmd_pairwise <- pmd_posthoc(pmd_res)
+```
 
+```
+## [1] "batch 1" "batch 2"
+## [1] "batch 1" "batch 3"
+## [1] "batch 2" "batch 3"
+```
+
+```r
+print(pmd_pairwise)
+```
+
+```
+## $pmd_raw_table
+##         batch 1 batch 2 batch 3
+## batch 1     0.0     0.0     0.5
+## batch 2     0.0     0.0     0.5
+## batch 3     0.5     0.5     0.0
+## 
+## $pmd_table
+##             batch 1     batch 2   batch 3
+## batch 1  0.00000000 -0.05824585 0.4599382
+## batch 2 -0.05824585  0.00000000 0.4572651
+## batch 3  0.45993822  0.45726505 0.0000000
+## 
+## $p.value_table
+##         batch 1 batch 2 batch 3
+## batch 1   1.000   0.945   0.001
+## batch 2   0.945   1.000   0.001
+## batch 3   0.001   0.001   1.000
+## 
+## $p.value_table_adjusted
+##         batch 1 batch 2 batch 3
+## batch 1 1.00000 1.00000 0.00225
+## batch 2 1.00000 1.00000 0.00225
+## batch 3 0.00225 0.00225 1.00000
+```
+
+```r
+## looking at the pmd_pairwise$pmd_raw_table, we can clearly see that batch 3 is half different from both batches 1 and 2.
+print(pmd_pairwise$pmd_raw_table)
+```
+
+```
+##         batch 1 batch 2 batch 3
+## batch 1     0.0     0.0     0.5
+## batch 2     0.0     0.0     0.5
+## batch 3     0.5     0.5     0.0
+```
+
+```r
+## similar to above, because in a real-world example the data wouldn't be so clean, the adjusted PMDs are a bit lower
+print(pmd_pairwise$pmd_table)
+```
+
+```
+##             batch 1     batch 2   batch 3
+## batch 1  0.00000000 -0.05824585 0.4599382
+## batch 2 -0.05824585  0.00000000 0.4572651
+## batch 3  0.45993822  0.45726505 0.0000000
+```
+
+```r
+## Now if we look at the pairwise p-values, we see that batch3 is the clear outlier and batches 1 and 2 are very similar
+print(pmd_pairwise$p.value_table)
+```
+
+```
+##         batch 1 batch 2 batch 3
+## batch 1   1.000   0.945   0.001
+## batch 2   0.945   1.000   0.001
+## batch 3   0.001   0.001   1.000
+```
+
+```r
+## The above are the nominal p-values. Below are the adjusted p-values (BH correction by default)
+print(pmd_pairwise$p.value_table_adjusted)
+```
+
+```
+##         batch 1 batch 2 batch 3
+## batch 1 1.00000 1.00000 0.00225
+## batch 2 1.00000 1.00000 0.00225
+## batch 3 0.00225 0.00225 1.00000
+```
 
 

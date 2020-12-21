@@ -4,12 +4,12 @@
 \alias{pmd}
 \title{Percent Maximum Difference}
 \usage{
-pmd(batch_labels, cluster_labels, num_sim = 1000)
+pmd(x, y = NULL, num_sim = 1000)
 }
 \arguments{
-\item{batch_labels}{a vector of labels for the batch that each sample (or cell for scRNAseq) came from. Can be a string or factor.}
+\item{x}{either a contingency table, or a vector of labels for the batch that each sample (or cell for scRNAseq) came from. Can be a string or factor.}
 
-\item{cluster_labels}{a vector of labels for each cluster that each sample belongs to. Can be a string or factor.}
+\item{y}{if x is vector of labels for each cluster that each sample belongs to. Can be a string or factor.}
 
 \item{num_sim}{for generating a null distribution in calculating a p-value, the number of simulations to run.}
 }
@@ -18,22 +18,21 @@ list object
    \enumerate{
    \item \code{cont_table} The contingency table of clusters (rows) and batches (columns)
    \item \code{expected} The expected matrix, as with a Chi-square test.
-   \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
    \item \code{pmd_null} Simulations of the null distribution of PMDs using the 
           observed global percentage of cluster abundances across all batches 
           with the observed batch sizes to match the input.
           Note that this will approach zero, but due to random sampling, typically will
           never actually get there. That's what makes having this null background useful.
-   \item \code{pmd_z} The Z-statistic for how different the observed PMD is from the 
-          distribution of null PMDs. However, in many cases, the
-          null background distribution of PMDs is a skewed Poisson or beta-like distribution
-          so a Z-statistic is less meaningful in that case. The returned \code{p.value} 
-          however is generated as an empirical p-value as measured against the simulations.
+          Note that these are Raw PMD, not adjusted.
+    \item \code{pmd_null_lambda} The lambda value of the null distributions Poisson fit. 
+          This is used in calculating the final PMD value compared to the raw PMD value.
+    \item \code{pmd_raw} The original, Raw PMD, before power correction
     \item \code{p.value} - Significance for whether or not batches are different in their cellular composition.
           This is determined through the generating \code{num_sim} null distributions, 
           and emperically measuring the number of times the observed PMD was greater 
           than the PMDs generated from the null distribution.
           Low p-values indicate that the batches are indeed different from each other.
+    \item \code{pmd} The percent maximum difference (pmd) of the input dataset.
    }
 }
 \description{
