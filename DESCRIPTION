@@ -1,19 +1,19 @@
 Package: PercentMaxDiff
 Type: Package
 Title: Percent Maximum Difference
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: c(
 	person('Scott', 'Tyler', NULL, 'scottyler89@gmail.com', c('cre', 'aut'), comment=c(ORCID = "0000-0002-7683-6686")),
 	person('Supinda', 'Bunyavanich', NULL, 'supinda.bunyavanich@mssm.edu', c('aut')),
     person('Eric', 'Schadt', NULL, 'eric.schadt@mssm.edu', c('aut')))
 Description: This tool assesses how large batch effects are using a metric between zero (batches similar) and 1 (batches completely different)
-Imports: stats, grDevices, MASS, scales, cowplot, ggplot2, rcompanion
-Suggests: knitr
+Imports: stats, grDevices, MASS, scales, cowplot, ggplot2, rcompanion, vegan, entropy
+Suggests: knitr, rmarkdown
 License: GPL-3
 Encoding: UTF-8
 VignetteBuilder: knitr
 LazyData: true
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 biocViews: CellBiology, CellBasedAssays, BatchEffect, Software
 Collate: 
     'PercentMaximumDifference.R'

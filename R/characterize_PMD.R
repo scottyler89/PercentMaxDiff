@@ -1,3 +1,32 @@
+
+#' get_avg_entropy
+#' @description \code{get_avg_entropy} Gets the average entropy of clusters by batch
+#' @param cont_mat batches in columns, clusters in rows
+#' @importFrom downsample downsample_mat
+#' @importFrom entropy entropy
+#' @return numeric object
+#'    \enumerate{
+#'    \item \code{avg_clust_entropy_by_batch}  The average Shannon entropy for clusters as they segregate by batch. Input batches are downsampled so that entropy can actually be computed fairly.
+#'    }
+#' @include PercentMaximumDifference.R
+#' @examples
+#'    get_avg_entropy(matrix())
+#' @name characterize_pmd
+#' @export
+get_avg_entropy<-function(cont_mat){
+    if (dim(cont_mat)[1]==1){
+        ## to easily handle the special case in which we have a single cluster
+        ## we'll just duplicate the one row. This one make a difference because
+        ## the entropy across both rows 
+        cont_mat<-rbind(cont_mat,cont_mat)
+    }
+    cont_mat<-downsample_mat(cont_mat, quiet=TRUE)
+    avg_clust_entropy_by_batch<-mean(apply(cont_mat,1,entropy))
+    return(avg_clust_entropy_by_batch)
+}
+
+
+
 #' characterize_pmd
 #' @description \code{characterize_pmd} Run the PMD characterization over a range of power conditions.
 #' @param num_cells_b1 The number of cells in batch 1
@@ -8,6 +37,8 @@
 #' @importFrom MASS fitdistr
 #' @importFrom rcompanion cramerV
 #' @importFrom stats chisq.test
+#' @importFrom vegan diversity
+#' @importFrom entropy entropy
 #' @return list object
 #'    \enumerate{
 #'    \item \code{out_df}  A dataframe that has the results of the characterization. Also returns a vector 
@@ -39,6 +70,8 @@ characterize_pmd <- function(num_cells_b1 = 1000,
     chi_vect <- c()
     cramers_v <- c()
     chi_neg_log_p_vect <- c()
+    inv_simp_idx_vect <- c()
+    shan_entrop_vect <- c()
     for (iter in seq(from = 1, to = iters)) {
         for (num_shared in num_clust_shared){
             temp_ds_name <- paste(num_cells_b1, "vs", num_cells_b2, sep="_")
@@ -76,6 +109,10 @@ characterize_pmd <- function(num_cells_b1 = 1000,
             ## get Cramers V
             temp_cramers_v <- as.numeric(cramerV(cont_mat, bias.correct = TRUE))
             cramers_v <- c(cramers_v, temp_cramers_v)
+            ## get inverse simpson's index
+            inv_simp_idx_vect<-c(inv_simp_idx_vect,mean(diversity(t(cont_mat),MARGIN=2,index="invsimpson")))
+            ## get shannon entropy
+            shan_entrop_vect<-c(shan_entrop_vect,get_avg_entropy(cont_mat))
             ## now log it all
             iter_vect <- c(iter_vect, iter)
             total_cells <- c(total_cells, length(clusters))
@@ -102,7 +139,9 @@ characterize_pmd <- function(num_cells_b1 = 1000,
                         pmd = pmd_vect,
                         chi_sq = chi_vect,
                         chi_neg_log_p = chi_neg_log_p_vect,
-                        cramers_v = cramers_v)
+                        cramers_v = cramers_v,
+                        inverse_simp = inv_simp_idx_vect,
+                        shannon_entropy = shan_entrop_vect)
     null_df <- data.frame(dataset_sizes = null_ds_names,
                           pmd_null = pmd_null_vect)
     return_obj <- list()
@@ -160,7 +199,8 @@ do_full_pmd_characterization<-function(directory = '',
     }
     names(pmd_bench_table_combined) <- out_df_names
     names(pmd_null_combined) <- null_names
-    if (directory != ''){  
+    if (directory != ''){
+        dir.create(directory, showWarnings=F)
         outfile <- paste(directory, "pmd_characterization%01d.png", sep = '/')
         print(outfile)
         png(outfile,width=3000, height=2100, res=600)
@@ -184,6 +224,18 @@ do_full_pmd_characterization<-function(directory = '',
             geom_smooth(lwd = 2, method = loess)   # Add linear regression line 
                              #  (by default includes 95% confidence region)
         print(p)
+        ##########################################
+        p <- ggplot(pmd_bench_table_combined, aes(x = num_non_shared_clusters, y = inverse_simp, color = dataset_sizes)) +
+            geom_point(shape = 1) +    # Use hollow circles
+            geom_smooth(lwd = 2, method = loess)   # Add linear regression line 
+                             #  (by default includes 95% confidence region)
+        print(p)
+        p <- ggplot(pmd_bench_table_combined, aes(x = num_non_shared_clusters, y = shannon_entropy, color = dataset_sizes)) +
+            geom_point(shape = 1) +    # Use hollow circles
+            geom_smooth(lwd = 2, method = loess)   # Add linear regression line 
+                             #  (by default includes 95% confidence region)
+        print(p)
+        ##########################################
         p <- ggplot(pmd_null_combined, aes(pmd_null, fill = dataset_sizes)) +
                     geom_density(adjust = 3, alpha=.3)+
               ylab("Density") + xlab("Raw PMD") +
@@ -236,6 +288,8 @@ do_full_pmd_characterization<-function(directory = '',
 #' @importFrom scales hue_pal
 #' @importFrom cowplot plot_grid
 #' @importFrom rcompanion cramerV
+#' @importFrom vegan diversity
+#' @importFrom entropy entropy
 #' @examples
 #'    pmd_bench_table_combined <- characterize_invariance_property(b1_size_vect = c(250, 250),
 #'                                                                b2_size_vect = c(500, 1000),
@@ -264,6 +318,8 @@ characterize_invariance_property<-function(directory='',
     chi_stat_vect <- c()
     chi_neg_log_p_vect <- c()
     cramers_v <- c()
+    inv_simp_idx_vect <- c()
+    shan_entrop_vect <- c()
     max_possible_neg_log_p <- -log10(as.numeric(noquote(unlist(format(.Machine)))['double.xmin']))
     for (num_clust_per_batch in num_clust_per_batch_range){
         print(num_clust_per_batch)
@@ -338,6 +394,11 @@ characterize_invariance_property<-function(directory='',
                     chi_stat_vect <- c(chi_stat_vect, temp_chi_res$statistic)
                     cramers_v <- c(cramers_v, temp_cramers_v)
                     chi_neg_log_p_vect <- c(chi_neg_log_p_vect, min(c(max_possible_neg_log_p,-log10(temp_chi_res$p.value))))
+                    ## get inverse simpson's index
+                    inv_simp_idx_vect<-c(inv_simp_idx_vect,mean(diversity(t(temp_cont_table),MARGIN=2,index="invsimpson")))
+                    ## get shannon entropy
+                    shan_entrop_vect<-c(shan_entrop_vect,get_avg_entropy(temp_cont_table))
+
                 }
             }
         }
@@ -356,7 +417,9 @@ characterize_invariance_property<-function(directory='',
                                             pmd = pmd_vect,
                                             chi_sq = chi_stat_vect,
                                             chi_neg_log_p = chi_neg_log_p_vect,
-                                            cramers_v = cramers_v)
+                                            cramers_v = cramers_v,
+                                            inverse_simp = inv_simp_idx_vect,
+                                            shannon_entropy = shan_entrop_vect)
     if (directory != ''){ 
         if (!file.exists(directory)){
             dir.create(directory, showWarnings = FALSE)
@@ -408,6 +471,26 @@ characterize_invariance_property<-function(directory='',
             ylab("Cramer's V") + 
             theme(text = element_text(size = 18))
         print(p42)
+        ##
+        pInvSimp1 <- ggplot(pmd_bench_table_combined, aes(x = NumberOfClusters, y = inverse_simp, color = PrcntDiffClusters, linetype = dataset_sizes)) +
+            geom_point(shape = 1) +    # Use hollow circles
+            geom_smooth(lwd = 2, method = loess, formula = y ~ x, span = 8) +  # Add linear regression line 
+            ggtitle("Inverse Simpsons Index")  +
+            xlab("Number Clusters") +
+            ylab("Inverse Simpsons Index") + 
+            theme(text = element_text(size = 18))
+        print(pInvSimp1)
+        ##
+        ##
+        pShanEnt1 <- ggplot(pmd_bench_table_combined, aes(x = NumberOfClusters, y = shannon_entropy, color = PrcntDiffClusters, linetype = dataset_sizes)) +
+            geom_point(shape = 1) +    # Use hollow circles
+            geom_smooth(lwd = 2, method = loess, formula = y ~ x, span = 8) +  # Add linear regression line 
+            ggtitle("Shannon Entropy")  +
+            xlab("Number Clusters") +
+            ylab("Shannon Entropy") + 
+            theme(text = element_text(size = 18))
+        print(pShanEnt1)
+        ##
         #####################################################
         p5 <- ggplot(pmd_bench_table_combined, aes(x = percent_different_clusters_numeric, y = raw_pmd, color = NumberClusters, linetype = dataset_sizes)) +#color = dataset_sizes, linetype = percent_difference)#p5 <- ggplot(pmd_bench_table_combined, aes(x = percent_different_clusters, y = raw_pmd, color = as.factor(NumberOfClusters), linetype = dataset_sizes)) +
             geom_point(shape = 1) +    # Use hollow circles
@@ -548,11 +631,67 @@ characterize_invariance_property<-function(directory='',
         }
         ############################
         print(p82)
+        ############################
+        ############################
+        ############################
+        pInvSimp2 <- ggplot(pmd_bench_table_combined, aes(x = percent_different_clusters_numeric, y = inverse_simp, color = NumberClusters, linetype = dataset_sizes)) +
+            geom_point(shape = 1)   +
+            xlab("Percent Different Clusters") +
+            ylab("Inverse Simpsons Index")  + 
+            theme(text = element_text(size = 18))   # Use hollow circles
+            #stat_smooth(lwd = 2, method = lm, formula = jitter(y, factor=.01*sqrt(max(y))) ~ poly(jitter(x, factor=.01),2), span=1e6, se=FALSE)
+            #geom_smooth(lwd = 2, method = loess, formula = y ~ x, span = 1e7)  # Add linear regression line 
+                             #  (by default includes 95% confidence region)
+        all_batches <- unique(pmd_bench_table_combined$NumberClusters)
+        temp_num_colors <- length(all_batches)
+        temp_colors <- hue_pal()(temp_num_colors)
+        for (temp_col_group_index in seq(1,temp_num_colors)){
+            temp_batch <- all_batches[temp_col_group_index]
+            temp_color <- temp_colors[temp_col_group_index]
+            temp_subset <- pmd_bench_table_combined[pmd_bench_table_combined$NumberClusters==temp_batch,]
+            #print(temp_batch)
+            #print(head(temp_subset))
+            #p6 <- p6 + ggplot(temp_subset, aes(x = percent_different_clusters_numeric, y = pmd, color = temp_color, linetype = dataset_sizes))
+            if (length(unique(temp_subset$percent_different_clusters_numeric)) == 2){
+                pInvSimp2 <- pInvSimp2 + stat_smooth(lwd = 2, data = temp_subset, method = lm, formula = y ~ x, span=1e6, se=TRUE)   # Add linear regression line 
+            } else {
+                pInvSimp2 <- pInvSimp2 + stat_smooth(lwd = 2, data = temp_subset, method = lm, formula = y ~ poly(x,2), span=1e6, se=TRUE)
+            }
+        }
+        ############################
+        print(pInvSimp2)
+        ############################
+        pShanEnt2 <- ggplot(pmd_bench_table_combined, aes(x = percent_different_clusters_numeric, y = shannon_entropy, color = NumberClusters, linetype = dataset_sizes)) +
+            geom_point(shape = 1)   +
+            xlab("Percent Different Clusters") +
+            ylab("Shannon Entropy")  + 
+            theme(text = element_text(size = 18))   # Use hollow circles
+            #stat_smooth(lwd = 2, method = lm, formula = jitter(y, factor=.01*sqrt(max(y))) ~ poly(jitter(x, factor=.01),2), span=1e6, se=FALSE)
+            #geom_smooth(lwd = 2, method = loess, formula = y ~ x, span = 1e7)  # Add linear regression line 
+                             #  (by default includes 95% confidence region)
+        all_batches <- unique(pmd_bench_table_combined$NumberClusters)
+        temp_num_colors <- length(all_batches)
+        temp_colors <- hue_pal()(temp_num_colors)
+        for (temp_col_group_index in seq(1,temp_num_colors)){
+            temp_batch <- all_batches[temp_col_group_index]
+            temp_color <- temp_colors[temp_col_group_index]
+            temp_subset <- pmd_bench_table_combined[pmd_bench_table_combined$NumberClusters==temp_batch,]
+            #print(temp_batch)
+            #print(head(temp_subset))
+            #p6 <- p6 + ggplot(temp_subset, aes(x = percent_different_clusters_numeric, y = pmd, color = temp_color, linetype = dataset_sizes))
+            if (length(unique(temp_subset$percent_different_clusters_numeric)) == 2){
+                pShanEnt2 <- pShanEnt2 + stat_smooth(lwd = 2, data = temp_subset, method = lm, formula = y ~ x, span=1e6, se=TRUE)   # Add linear regression line 
+            } else {
+                pShanEnt2 <- pShanEnt2 + stat_smooth(lwd = 2, data = temp_subset, method = lm, formula = y ~ poly(x,2), span=1e6, se=TRUE)
+            }
+        }
+        ############################
+        print(pShanEnt2)
         #####################################################
         dev.off()
         outfile <- paste(directory, "pmd_characterization_merged%01d.png", sep = '/')
-        png(outfile,width=12500, height=4500, res=600)
-        print(plot_grid(p2, p3, p4, p42, p6, p7, p8, p82, nrow=2, ncol=4))
+        png(outfile,width=18000, height=4500, res=600)
+        print(plot_grid(p2, p3, p4, p42, pInvSimp1, pShanEnt1, p6, p7, p8, p82, pInvSimp2, pShanEnt2, nrow=2, ncol=6))
         dev.off()
     }
     return(pmd_bench_table_combined)

@@ -2,8 +2,11 @@
 % Please edit documentation in R/characterize_PMD.R
 \name{characterize_pmd}
 \alias{characterize_pmd}
-\title{characterize_pmd}
+\alias{get_avg_entropy}
+\title{get_avg_entropy}
 \usage{
+get_avg_entropy(cont_mat)
+
 characterize_pmd(
   num_cells_b1 = 1000,
   num_cells_b2 = 1000,
@@ -13,6 +16,8 @@ characterize_pmd(
 )
 }
 \arguments{
+\item{cont_mat}{batches in columns, clusters in rows}
+
 \item{num_cells_b1}{The number of cells in batch 1}
 
 \item{num_cells_b2}{The number of cells in batch 2}
@@ -24,6 +29,11 @@ characterize_pmd(
 \item{pmd_2}{A boolean argument from when we had thought about a standardized version of PMD that used squares/sqrts instead of absolute values. It worked much worse, so don't bother using this arg.}
 }
 \value{
+numeric object
+   \enumerate{
+   \item \code{avg_clust_entropy_by_batch}  The average Shannon entropy for clusters as they segregate by batch. Input batches are downsampled so that entropy can actually be computed fairly.
+   }
+
 list object
    \enumerate{
    \item \code{out_df}  A dataframe that has the results of the characterization. Also returns a vector 
@@ -31,8 +41,11 @@ list object
    }
 }
 \description{
+\code{get_avg_entropy} Gets the average entropy of clusters by batch
+
 \code{characterize_pmd} Run the PMD characterization over a range of power conditions.
 }
 \examples{
+   get_avg_entropy(matrix())
    characterize_pmd()
 }
